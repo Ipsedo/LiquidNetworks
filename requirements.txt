@@ -1,4 +1,6 @@
 torch
+mlflow
+tqdm
 
 pre-commit
 mypy
