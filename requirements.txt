@@ -1,0 +1,6 @@
+torch
+
+pre-commit
+mypy
+pylint
+pytest
