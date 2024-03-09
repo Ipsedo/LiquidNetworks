@@ -1,6 +1,10 @@
 torch
 mlflow
 tqdm
+deeplake
+pandas
+pandarallel
+numpy
 
 pre-commit
 mypy

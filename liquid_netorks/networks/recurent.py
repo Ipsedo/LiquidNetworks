@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from statistics import mean
 
+import numpy as np
 import torch as th
 from torch import nn
 
@@ -18,11 +20,15 @@ class LiquidRecurrent(nn.Module):
 
         self.__cell = LiquidCell(neuron_number, input_size, unfolding_steps)
         self.__neuron_number = neuron_number
-        self.__to_output = nn.Linear(neuron_number, output_size)
+        self.__to_output = nn.Sequential(
+            nn.Linear(neuron_number, output_size), nn.Sigmoid()
+        )
 
     def __get_first_x(self, batch_size: int) -> th.Tensor:
         device = "cuda" if next(self.parameters()).is_cuda else "cpu"
-        return th.randn(batch_size, self.__neuron_number, device=device)
+        return th.relu(
+            th.randn(batch_size, self.__neuron_number, device=device)
+        )
 
     def forward(self, i: th.Tensor, delta_t: th.Tensor) -> th.Tensor:
         b, _, steps = i.size()
@@ -36,3 +42,17 @@ class LiquidRecurrent(nn.Module):
             results.append(self.__to_output(x_t))
 
         return th.stack(results, -1)
+
+    def count_parameters(self) -> int:
+        return sum(
+            int(np.prod(p.size()))
+            for p in self.parameters()
+            if p.requires_grad
+        )
+
+    def grad_norm(self) -> float:
+        return mean(
+            float(p.grad.norm().item())
+            for p in self.parameters()
+            if p.grad is not None
+        )

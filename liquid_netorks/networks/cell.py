@@ -11,13 +11,27 @@ class Model(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.__weights = nn.Linear(input_size, neuron_number)
-        self.__recurrent_weights = nn.Linear(neuron_number, neuron_number)
-        self.__biases = nn.Parameter(th.randn(1, neuron_number))
+        self.__weights = nn.Linear(input_size, neuron_number, bias=False)
+        self.__recurrent_weights = nn.Linear(
+            neuron_number, neuron_number, bias=False
+        )
+        self.__biases = nn.Parameter(th.randn(1, neuron_number) * 1e-3)
+
+        def __init_weights(module: nn.Module) -> None:
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(module.weight, gain=1e-3)
+                if module.bias is not None:
+                    nn.init.normal_(module.bias, std=1e-3)
+            elif isinstance(module, nn.LayerNorm):
+                if module.elementwise_affine:
+                    nn.init.ones_(module.weight)
+                    nn.init.zeros_(module.bias)
+
+        self.apply(__init_weights)
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
-        # x_t : (batch, input_size, time_steps)
-        return th.tanh(
+        # x_t : (batch, input_size)
+        return th.relu(
             self.__recurrent_weights(x_t)
             + self.__weights(input_t)
             + self.__biases
@@ -44,9 +58,8 @@ class LiquidCell(nn.Module):
         delta_t = delta_t.unsqueeze(1) / self.__unfolding_steps
 
         for _ in range(self.__unfolding_steps):
-            out = self.__f(x_t_next, input_t)
-            x_t_next = (x_t_next + delta_t * out * self.__a) / (
-                1 + delta_t * (1 / self.__tau * out)
-            )
+            x_t_next = (
+                x_t_next + delta_t * self.__f(x_t_next, input_t) * self.__a
+            ) / (1 + delta_t * (1 / self.__tau + self.__f(x_t_next, input_t)))
 
         return x_t_next
