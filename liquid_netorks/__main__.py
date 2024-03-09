@@ -8,7 +8,7 @@ from .train import train
 def main() -> None:
     parser = argparse.ArgumentParser("liquid_netorks main")
 
-    parser.add_argument("--neuron-number", type=int, default=8)
+    parser.add_argument("--neuron-number", type=int, default=4)
     parser.add_argument("--unfolding-steps", type=int, default=3)
     parser.add_argument("--input-size", type=int, required=True)
     parser.add_argument("--output-size", type=int, required=True)

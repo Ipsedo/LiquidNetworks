@@ -79,7 +79,8 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                         "loss": loss_metric.get_last_metric(),
                         "loss_smoothed": loss_metric.get_smoothed_metric(),
                         "grad_norm": grad_norm,
-                    }
+                    },
+                    step=tqdm_bar.n,
                 )
 
                 tqdm_bar.set_description(
