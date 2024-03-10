@@ -26,7 +26,7 @@ class LiquidRecurrent(nn.Module):
 
     def __get_first_x(self, batch_size: int) -> th.Tensor:
         device = "cuda" if next(self.parameters()).is_cuda else "cpu"
-        return th.relu(
+        return th.tanh(
             th.randn(batch_size, self.__neuron_number, device=device)
         )
 

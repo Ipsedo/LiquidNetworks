@@ -11,6 +11,7 @@ from torch.utils.data import Dataset
 # https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
 class HouseholdPowerDataset(Dataset):
     def __init__(self, csv_path: str) -> None:
+        # pylint: disable=too-many-locals
         super().__init__()
 
         pandarallel.initialize()
@@ -37,16 +38,18 @@ class HouseholdPowerDataset(Dataset):
             "Sub_metering_3",
         ]
 
+        # pre-process features
         for c in self.__features_column:
             self.__df[c] = self.__df[c].replace("?", "0.0")
             c_data = self.__df[c].dropna().astype(float)
             c_mean = c_data.mean()
             c_std = c_data.std()
 
-            self.__df[c] = self.__df[c].fillna(c_mean).astype(float)
+            self.__df[c] = (
+                self.__df[c].fillna(c_mean).astype(float) - c_mean
+            ) / (c_std + 1e-8)
 
-            self.__df[c] = (self.__df[c] - c_mean) / (c_std + 1e-8)
-
+        # pre-process target
         self.__df[self.__target_variable] = self.__df[
             self.__target_variable
         ].replace("?", "0.0")
@@ -59,11 +62,32 @@ class HouseholdPowerDataset(Dataset):
 
         self.__df[self.__target_variable] = (
             self.__df[self.__target_variable].fillna(y_mean).astype(float)
-        )
-
-        self.__df[self.__target_variable] = (
-            self.__df[self.__target_variable] - y_min
+            - y_min
         ) / (y_max - y_min)
+
+        # pre-process time deltas
+        dates = self.__df["date"].tolist()
+        deltas = [(dates[1] - dates[0]).total_seconds()]
+        for i, d in enumerate(dates[1:]):
+            deltas.append((d - dates[i]).total_seconds())
+        self.__df["delta"] = pd.Series(deltas)
+
+        deltas_no_na = self.__df["delta"].dropna().astype(float)
+
+        deltas_min = deltas_no_na.min()
+        deltas_max = deltas_no_na.max()
+        deltas_mean = deltas_no_na.mean()
+
+        if deltas_max != deltas_min:
+            self.__df["delta"] = (
+                self.__df["delta"].fillna(deltas_mean).astype(float)
+                - deltas_min
+            ) / (deltas_max - deltas_min)
+        else:
+            self.__df["delta"] = (
+                self.__df["delta"].fillna(deltas_mean).astype(float)
+                / deltas_max
+            )
 
     def __len__(self) -> int:
         return len(self.__df) // self.__seq_length
@@ -78,14 +102,10 @@ class HouseholdPowerDataset(Dataset):
 
         target_variable = sub_df[self.__target_variable]
         features_df = sub_df[self.__features_column]
-
-        # dates = sub_df["date"]
-        # deltas = [1.0]
-        # for i, d in enumerate(dates[1:]):
-        #    deltas.append((d - dates.iloc[i]).total_seconds())
+        delta = sub_df["delta"]
 
         return (
             th.tensor(features_df.to_numpy().T, dtype=th.float),
-            th.ones(self.__seq_length, dtype=th.float),
+            th.tensor(delta.to_numpy(), dtype=th.float),
             th.tensor(target_variable.to_numpy(), dtype=th.float),
         )
