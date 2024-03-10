@@ -32,9 +32,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         )
 
         ltc = model_options.get_model()
-        optim = th.optim.Adam(
-            ltc.parameters(), lr=train_options.learning_rate, weight_decay=1e-3
-        )
+        optim = th.optim.SGD(ltc.parameters(), lr=train_options.learning_rate)
 
         if model_options.cuda:
             device = th.device("cuda")
