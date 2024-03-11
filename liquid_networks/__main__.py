@@ -6,7 +6,7 @@ from .train import train
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser("liquid_netorks main")
+    parser = argparse.ArgumentParser("liquid_networks main")
 
     parser.add_argument("--neuron-number", type=int, default=16)
     parser.add_argument("--unfolding-steps", type=int, default=6)

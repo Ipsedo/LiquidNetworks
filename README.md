@@ -1,6 +1,6 @@
 # LiquidNetworks
 
-My python template for liquid_netorks.
+My python template for liquid_networks.
 
 ## Installation
 

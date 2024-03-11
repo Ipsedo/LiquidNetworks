@@ -34,7 +34,7 @@ repos:
         name: mypy
         language: system
         entry: mypy
-        args: [ liquid_netorks, tests]
+        args: [ liquid_networks, tests]
         types: [ python ]
         pass_filenames: false
         require_serial: true
@@ -42,7 +42,7 @@ repos:
         name: pylint
         language: system
         entry: pylint
-        args: [ liquid_netorks, tests ]
+        args: [ liquid_networks, tests ]
         types: [ python ]
         pass_filenames: false
         require_serial: true

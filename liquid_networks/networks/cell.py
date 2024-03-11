@@ -3,23 +3,6 @@ import torch as th
 from torch import nn
 
 
-class MyLinear(nn.Module):
-    def __init__(
-        self, in_features: int, out_features: int, bias: bool = True
-    ) -> None:
-        super().__init__()
-
-        self.weight = nn.Parameter(th.randn(1, in_features, out_features))
-        self.bias = nn.Parameter(th.randn(1, out_features)) if bias else None
-
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        out = th.sum(self.weight * x.unsqueeze(-1), dim=1)
-        if self.bias is not None:
-            out += self.bias
-
-        return out
-
-
 class Model(nn.Module):
     def __init__(
         self,
@@ -35,14 +18,10 @@ class Model(nn.Module):
         self.__biases = nn.Parameter(th.randn(1, neuron_number) * 1e-3)
 
         def __init_weights(module: nn.Module) -> None:
-            if isinstance(module, (nn.Linear, MyLinear)):
+            if isinstance(module, nn.Linear):
                 nn.init.xavier_uniform_(module.weight, gain=1e-3)
                 if module.bias is not None:
                     nn.init.normal_(module.bias, std=1e-3)
-            elif isinstance(module, nn.LayerNorm):
-                if module.elementwise_affine:
-                    nn.init.ones_(module.weight)
-                    nn.init.zeros_(module.bias)
 
         self.apply(__init_weights)
 

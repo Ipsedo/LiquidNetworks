@@ -2,8 +2,8 @@
 import pytest
 import torch as th
 
-from liquid_netorks.networks.cell import LiquidCell, Model
-from liquid_netorks.networks.recurent import LiquidRecurrent
+from liquid_networks.networks.cell import LiquidCell, Model
+from liquid_networks.networks.recurent import LiquidRecurrent
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
