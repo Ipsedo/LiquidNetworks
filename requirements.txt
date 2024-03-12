@@ -5,6 +5,7 @@ deeplake
 pandas
 pandarallel
 numpy
+jupyter
 
 pre-commit
 mypy

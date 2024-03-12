@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import mlflow
 import torch as th
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .data import HouseholdPowerDataset
 from .metrics import Metric
 from .options import ModelOptions, TrainOptions
 
@@ -22,7 +20,13 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
             }
         )
 
-        dataset = HouseholdPowerDataset(train_options.csv_path)
+        print(f"Will load '{train_options.dataset_name}' dataset.")
+
+        dataset = train_options.get_dataset()
+
+        assert dataset.target_size == model_options.output_size
+        assert dataset.task_type == model_options.task_type
+
         dataloader = DataLoader(
             dataset,
             batch_size=train_options.batch_size,
@@ -33,6 +37,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
 
         ltc = model_options.get_model()
         optim = th.optim.Adam(ltc.parameters(), lr=train_options.learning_rate)
+        loss_fn = model_options.get_loss_function()
 
         if model_options.cuda:
             device = th.device("cuda")
@@ -59,11 +64,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 y = y.to(device=device)
 
                 out = ltc(f, t)
-                loss = (
-                    F.mse_loss(out.squeeze(1), y, reduction="none")
-                    .sum(dim=-1)
-                    .mean()
-                )
+                loss = loss_fn(out, y)
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()

@@ -1,18 +1,58 @@
 # -*- coding: utf-8 -*-
+import re
+from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Tuple
+from os import listdir
+from os.path import isdir, isfile, join
+from typing import List, Tuple
 
 import pandas as pd
 import torch as th
 from pandarallel import pandarallel
 from torch.utils.data import Dataset
 
+from ..networks import TaskType
+from .transform import min_max_normalize_column, standardize_column
+
+
+class AbstractDataset(ABC, Dataset):
+    def __init__(self, data_path: str) -> None:
+        super().__init__()
+
+        self._data_path = data_path
+
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+    @abstractmethod
+    def __getitem__(
+        self, index: int
+    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+        pass
+
+    @property
+    @abstractmethod
+    def task_type(self) -> TaskType:
+        pass
+
+    @property
+    @abstractmethod
+    def target_size(self) -> int:
+        pass
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(data_path={self._data_path})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 # https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
-class HouseholdPowerDataset(Dataset):
+class HouseholdPowerDataset(AbstractDataset):
     def __init__(self, csv_path: str) -> None:
         # pylint: disable=too-many-locals
-        super().__init__()
+        super().__init__(csv_path)
 
         pandarallel.initialize()
 
@@ -40,54 +80,21 @@ class HouseholdPowerDataset(Dataset):
 
         # pre-process features
         for c in self.__features_column:
-            self.__df[c] = self.__df[c].replace("?", "0.0")
-            c_data = self.__df[c].dropna().astype(float)
-            c_mean = c_data.mean()
-            c_std = c_data.std()
-
-            self.__df[c] = (
-                self.__df[c].fillna(c_mean).astype(float) - c_mean
-            ) / (c_std + 1e-8)
+            self.__df[c] = standardize_column(self.__df[c].replace("?", "0.0"))
 
         # pre-process target
-        self.__df[self.__target_variable] = self.__df[
-            self.__target_variable
-        ].replace("?", "0.0")
 
-        y = self.__df[self.__target_variable].dropna().astype(float)
-
-        y_min = y.min()
-        y_max = y.max()
-        y_mean = y.mean()
-
-        self.__df[self.__target_variable] = (
-            self.__df[self.__target_variable].fillna(y_mean).astype(float)
-            - y_min
-        ) / (y_max - y_min)
+        self.__df[self.__target_variable] = standardize_column(
+            self.__df[self.__target_variable].replace("?", "0.0")
+        )
 
         # pre-process time deltas
         dates = self.__df["date"].tolist()
         deltas = [(dates[1] - dates[0]).total_seconds()]
         for i, d in enumerate(dates[1:]):
             deltas.append((d - dates[i]).total_seconds())
-        self.__df["delta"] = pd.Series(deltas)
 
-        deltas_no_na = self.__df["delta"].dropna().astype(float)
-
-        deltas_min = deltas_no_na.min()
-        deltas_max = deltas_no_na.max()
-        deltas_mean = deltas_no_na.mean()
-
-        if deltas_max != deltas_min:
-            self.__df["delta"] = (
-                self.__df["delta"].fillna(deltas_mean).astype(float)
-                - deltas_min
-            ) / (deltas_max - deltas_min)
-        else:
-            self.__df["delta"] = (
-                self.__df["delta"].fillna(deltas_mean).astype(float)
-                / deltas_max
-            )
+        self.__df["delta"] = min_max_normalize_column(pd.Series(deltas))
 
     def __len__(self) -> int:
         return len(self.__df) // self.__seq_length
@@ -100,12 +107,125 @@ class HouseholdPowerDataset(Dataset):
 
         sub_df = self.__df.iloc[index_start:index_end, :]
 
-        target_variable = sub_df[self.__target_variable]
+        target_variable = sub_df[[self.__target_variable]]
         features_df = sub_df[self.__features_column]
         delta = sub_df["delta"]
 
         return (
             th.tensor(features_df.to_numpy().T, dtype=th.float),
             th.tensor(delta.to_numpy(), dtype=th.float),
-            th.tensor(target_variable.to_numpy(), dtype=th.float),
+            th.tensor(target_variable.to_numpy().T, dtype=th.float),
         )
+
+    @property
+    def task_type(self) -> TaskType:
+        return "regression"
+
+    @property
+    def target_size(self) -> int:
+        return 1
+
+
+# MotionSense Dataset: Sensor Based Human Activity and Attribute Recognition
+class MotionSenseDataset(AbstractDataset):
+    def __init__(self, dataset_path: str, load_train: bool = True) -> None:
+        # pylint: disable=too-many-locals
+        super().__init__(dataset_path)
+
+        train_trials = list(range(1, 10))
+
+        self.__seq_length = 32
+
+        regex_activity = re.compile(r"^(\w+)_(\d+)$")
+        regex_subject = re.compile(r"^sub_(\d+)\.csv$")
+
+        data_path = join(
+            dataset_path, "A_DeviceMotion_data", "A_DeviceMotion_data"
+        )
+
+        df_list: List[pd.DataFrame] = []
+
+        for d in listdir(data_path):
+            dir_path = join(data_path, d)
+            matched_dir = regex_activity.match(d)
+            if isdir(dir_path) and matched_dir:
+                act = matched_dir.group(1)
+                trial = matched_dir.group(2)
+
+                for f in listdir(dir_path):
+                    matched_file = regex_subject.match(f)
+                    if isfile(join(dir_path, f)) and matched_file:
+                        subject = matched_file.group(1)
+
+                        sub_df = pd.read_csv(join(dir_path, f), sep=",")
+                        sub_df["act"] = act
+                        sub_df["trial"] = int(trial)
+                        sub_df["subject"] = int(subject)
+                        sub_df["file_index"] = len(df_list)
+                        sub_df = sub_df.iloc[
+                            len(sub_df) % self.__seq_length :, :
+                        ]
+                        sub_df["time"] = list(range(len(sub_df)))
+
+                        df_list.append(sub_df)
+
+        self.__df = pd.concat(df_list).drop("Unnamed: 0", axis=1)
+
+        cond = self.__df["trial"].isin(train_trials)
+        self.__df = self.__df[cond if load_train else ~cond]
+
+        self.__features_columns = [
+            "attitude.roll",
+            "attitude.pitch",
+            "attitude.yaw",
+            "gravity.x",
+            "gravity.y",
+            "gravity.z",
+            "rotationRate.x",
+            "rotationRate.y",
+            "rotationRate.z",
+            "userAcceleration.x",
+            "userAcceleration.y",
+            "userAcceleration.z",
+        ]
+        self.__target_column = "act"
+
+        self.__class_to_idx = {
+            c: i
+            for i, c in enumerate(
+                sorted(self.__df[self.__target_column].unique())
+            )
+        }
+
+        for c in self.__features_columns:
+            self.__df[c] = standardize_column(self.__df[c])
+
+    def __len__(self) -> int:
+        return len(self.__df) // self.__seq_length
+
+    def __getitem__(
+        self, index: int
+    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+        index_start = index * self.__seq_length
+        index_end = (index + 1) * self.__seq_length
+
+        sub_df = self.__df.iloc[index_start:index_end]
+
+        features_df = sub_df[self.__features_columns].astype(float).fillna(0)
+        target_variable = self.__class_to_idx[
+            sub_df[self.__target_column].iloc[0]
+        ]
+
+        return (
+            th.tensor(features_df.to_numpy().T, dtype=th.float),
+            th.ones(len(features_df), dtype=th.float),
+            th.tensor(target_variable, dtype=th.long),
+        )
+
+    @property
+    def task_type(self) -> TaskType:
+        return "single_classification"
+
+    @property
+    def target_size(self) -> int:
+        return len(self.__class_to_idx)

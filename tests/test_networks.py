@@ -3,7 +3,7 @@ import pytest
 import torch as th
 
 from liquid_networks.networks.cell import LiquidCell, Model
-from liquid_networks.networks.recurent import LiquidRecurrent
+from liquid_networks.networks.recurent import LiquidRecurrentReg
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
@@ -56,7 +56,7 @@ def test_recurrent(
     time_steps: int,
     output_size: int,
 ) -> None:
-    r = LiquidRecurrent(
+    r = LiquidRecurrentReg(
         neuron_number, input_size, unfolding_steps, output_size
     )
 
