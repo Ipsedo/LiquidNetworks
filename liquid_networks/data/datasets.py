@@ -10,6 +10,7 @@ import pandas as pd
 import torch as th
 from pandarallel import pandarallel
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from ..networks import TaskType
 from .transform import min_max_normalize_column, standardize_column
@@ -34,11 +35,6 @@ class AbstractDataset(ABC, Dataset):
     @property
     @abstractmethod
     def task_type(self) -> TaskType:
-        pass
-
-    @property
-    @abstractmethod
-    def target_size(self) -> int:
         pass
 
     def __str__(self) -> str:
@@ -120,10 +116,6 @@ class HouseholdPowerDataset(AbstractDataset):
     @property
     def task_type(self) -> TaskType:
         return "regression"
-
-    @property
-    def target_size(self) -> int:
-        return 1
 
 
 # MotionSense Dataset: Sensor Based Human Activity and Attribute Recognition
@@ -226,6 +218,34 @@ class MotionSenseDataset(AbstractDataset):
     def task_type(self) -> TaskType:
         return "single_classification"
 
+
+class HarmfulBrainActivityDataset(AbstractDataset):
+    def __init__(self, data_path: str) -> None:
+        super().__init__(data_path)
+
+        assert isdir(data_path)
+
+        re_file = re.compile(r"^\d+_features\.pt$")
+
+        self.__index_list = [
+            f.split("_")[0]
+            for f in tqdm(listdir(data_path))
+            if isfile(join(data_path, f)) and re_file.match(f)
+        ]
+
+    def __len__(self) -> int:
+        return len(self.__index_list)
+
+    def __getitem__(
+        self, index: int
+    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+        file_index = self.__index_list[index]
+        return (
+            th.load(join(self._data_path, f"{file_index}_features.pt")),
+            th.load(join(self._data_path, f"{file_index}_deltas.pt")),
+            th.load(join(self._data_path, f"{file_index}_classes.pt")),
+        )
+
     @property
-    def target_size(self) -> int:
-        return len(self.__class_to_idx)
+    def task_type(self) -> TaskType:
+        return "brain_activity"

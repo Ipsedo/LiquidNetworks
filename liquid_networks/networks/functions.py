@@ -16,6 +16,4 @@ def cross_entropy(outputs: th.Tensor, targets: th.Tensor) -> th.Tensor:
 
 
 def mse_loss(outputs: th.Tensor, targets: th.Tensor) -> th.Tensor:
-    return (
-        F.mse_loss(outputs, targets, reduction="none").sum(dim=[1, 2]).mean()
-    )
+    return F.mse_loss(outputs, targets, reduction="none").sum(dim=-1).mean()

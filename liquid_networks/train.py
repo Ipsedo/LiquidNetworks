@@ -24,14 +24,13 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
 
         dataset = train_options.get_dataset()
 
-        assert dataset.target_size == model_options.output_size
         assert dataset.task_type == model_options.task_type
 
         dataloader = DataLoader(
             dataset,
             batch_size=train_options.batch_size,
             shuffle=True,
-            num_workers=6,
+            num_workers=12,
             drop_last=True,
         )
 

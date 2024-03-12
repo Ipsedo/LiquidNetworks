@@ -6,6 +6,7 @@ from typing import List
 import numpy as np
 import torch as th
 from torch import nn
+from torch.nn import functional as F
 
 from .cell import LiquidCell
 
@@ -72,6 +73,14 @@ class LiquidRecurrentReg(LiquidRecurrent):
 
     def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
         return th.stack(outputs, -1)
+
+
+class LiquidRecurrentBrainActivity(LiquidRecurrent):
+    def _output_activation(self, out: th.Tensor) -> th.Tensor:
+        return F.softmax(out, dim=-1)
+
+    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
+        return outputs[-1]
 
 
 class LiquidRecurrentClf(LiquidRecurrent):
