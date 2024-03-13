@@ -8,6 +8,7 @@ import torch as th
 from torch import nn
 from torch.nn import functional as F
 
+from .causal import CausalConv1d
 from .cell import LiquidCell
 
 
@@ -32,6 +33,10 @@ class LiquidRecurrent(ABC, nn.Module):
         )
 
     @abstractmethod
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        pass
+
+    @abstractmethod
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         pass
 
@@ -40,13 +45,14 @@ class LiquidRecurrent(ABC, nn.Module):
         pass
 
     def forward(self, i: th.Tensor, delta_t: th.Tensor) -> th.Tensor:
-        b, _, steps = i.size()
+        b, _, _ = i.size()
 
         x_t = self.__get_first_x(b)
+        i = self._process_input(i)
 
         results = []
 
-        for t in range(steps):
+        for t in range(i.size(2)):
             x_t = self.__cell(x_t, i[:, :, t], delta_t[:, t])
             results.append(self._output_activation(self.__to_output(x_t)))
 
@@ -68,6 +74,9 @@ class LiquidRecurrent(ABC, nn.Module):
 
 
 class LiquidRecurrentReg(LiquidRecurrent):
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        return i
+
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return th.sigmoid(out)
 
@@ -76,6 +85,39 @@ class LiquidRecurrentReg(LiquidRecurrent):
 
 
 class LiquidRecurrentBrainActivity(LiquidRecurrent):
+    def __init__(
+        self,
+        neuron_number: int,
+        input_size: int,
+        unfolding_steps: int,
+        output_size: int,
+    ) -> None:
+
+        output_conv = 32
+
+        super().__init__(
+            neuron_number, output_conv, unfolding_steps, output_size
+        )
+
+        self.__conv = nn.Sequential(
+            CausalConv1d(input_size, output_conv),
+            nn.ReLU(),
+            nn.BatchNorm1d(output_conv),
+            nn.MaxPool1d(2, 2),
+            CausalConv1d(output_conv, output_conv),
+            nn.ReLU(),
+            nn.BatchNorm1d(output_conv),
+            nn.MaxPool1d(2, 2),
+            CausalConv1d(output_conv, output_conv),
+            nn.ReLU(),
+            nn.MaxPool1d(2, 2),
+            nn.BatchNorm1d(output_conv),
+        )
+
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        out: th.Tensor = self.__conv(i)
+        return out
+
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return F.softmax(out, dim=-1)
 
@@ -84,6 +126,9 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
 
 
 class LiquidRecurrentClf(LiquidRecurrent):
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        return i
+
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return out  # cross entropy perform softmax before nll
 
@@ -92,6 +137,9 @@ class LiquidRecurrentClf(LiquidRecurrent):
 
 
 class LiquidRecurrentSingleClf(LiquidRecurrent):
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        return i
+
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return out  # cross entropy perform softmax before nll
 

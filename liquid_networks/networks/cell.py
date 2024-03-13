@@ -54,12 +54,9 @@ class LiquidCell(nn.Module):
         delta_t = delta_t.unsqueeze(1) / self.__unfolding_steps
 
         for _ in range(self.__unfolding_steps):
-            x_t_next = (
-                x_t_next + delta_t * self.__f(x_t_next, input_t) * self.__a
-            ) / (
-                1
-                + delta_t
-                * (1 / th.abs(self.__tau) + self.__f(x_t_next, input_t))
+            out = self.__f(x_t_next, input_t)
+            x_t_next = (x_t_next + delta_t * out * self.__a) / (
+                1 + delta_t * (1 / th.abs(self.__tau) + out)
             )
 
         return x_t_next

@@ -45,6 +45,7 @@ class TrainOptions(NamedTuple):
     metric_window_size: int
     dataset_name: DatasetNames
     data_path: str
+    save_every: int
 
     def to_dict(self) -> Dict[str, Any]:
         return dict(self._asdict())  # pylint: disable=no-member

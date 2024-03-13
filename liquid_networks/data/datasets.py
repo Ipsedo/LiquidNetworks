@@ -225,7 +225,7 @@ class HarmfulBrainActivityDataset(AbstractDataset):
 
         assert isdir(data_path)
 
-        re_file = re.compile(r"^\d+_features\.pt$")
+        re_file = re.compile(r"^\d+_eeg\.pt$")
 
         self.__index_list = [
             f.split("_")[0]
@@ -240,9 +240,10 @@ class HarmfulBrainActivityDataset(AbstractDataset):
         self, index: int
     ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
         file_index = self.__index_list[index]
+        features = th.load(join(self._data_path, f"{file_index}_eeg.pt"))
         return (
-            th.load(join(self._data_path, f"{file_index}_features.pt")),
-            th.load(join(self._data_path, f"{file_index}_deltas.pt")),
+            features,
+            th.ones(features.size(1), dtype=th.float),
             th.load(join(self._data_path, f"{file_index}_classes.pt")),
         )
 

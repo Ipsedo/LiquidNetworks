@@ -37,6 +37,7 @@ def main() -> None:
         choices=get_args(DatasetNames),
     )
     train_parser.add_argument("--data-path", type=str, required=True)
+    train_parser.add_argument("--save-every", type=int, default=1024)
 
     args = parser.parse_args()
 
@@ -59,7 +60,9 @@ def main() -> None:
             args.metric_window_size,
             args.dataset,
             args.data_path,
+            args.save_every,
         )
+
         train(model_options, train_options)
     else:
         parser.error(f"Unrecognized mode: {args.mode}")

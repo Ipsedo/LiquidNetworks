@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from os import mkdir
+from os.path import exists, isdir, join
+
 import mlflow
 import torch as th
 from torch.utils.data import DataLoader
@@ -10,6 +13,11 @@ from .options import ModelOptions, TrainOptions
 
 def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals
+
+    if not exists(train_options.output_folder):
+        mkdir(train_options.output_folder)
+    elif not isdir(train_options.output_folder):
+        raise NotADirectoryError(train_options.output_folder)
 
     with mlflow.start_run(run_name=train_options.run_name):
 
@@ -89,3 +97,22 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 )
 
                 tqdm_bar.update(1)
+
+                if (
+                    tqdm_bar.n % train_options.save_every
+                    == train_options.save_every - 1
+                ):
+                    th.save(
+                        ltc.state_dict(),
+                        join(
+                            train_options.output_folder, f"ltc_{tqdm_bar.n}.pt"
+                        ),
+                    )
+
+                    th.save(
+                        optim.state_dict(),
+                        join(
+                            train_options.output_folder,
+                            f"optim_{tqdm_bar.n}.pt",
+                        ),
+                    )
