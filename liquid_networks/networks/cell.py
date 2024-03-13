@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import torch as th
 from torch import nn
+from torch.nn import functional as F
 
 
 class Model(nn.Module):
@@ -27,7 +28,7 @@ class Model(nn.Module):
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
         # x_t : (batch, input_size)
-        return th.tanh(
+        return F.mish(
             self.__recurrent_weights(x_t)
             + self.__weights(input_t)
             + self.__biases

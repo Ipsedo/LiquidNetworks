@@ -28,13 +28,12 @@ class LiquidRecurrent(ABC, nn.Module):
 
     def __get_first_x(self, batch_size: int) -> th.Tensor:
         device = "cuda" if next(self.parameters()).is_cuda else "cpu"
-        return th.tanh(
+        return F.mish(
             th.randn(batch_size, self.__neuron_number, device=device)
         )
 
-    @abstractmethod
     def _process_input(self, i: th.Tensor) -> th.Tensor:
-        pass
+        return i
 
     @abstractmethod
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
@@ -74,9 +73,6 @@ class LiquidRecurrent(ABC, nn.Module):
 
 
 class LiquidRecurrentReg(LiquidRecurrent):
-    def _process_input(self, i: th.Tensor) -> th.Tensor:
-        return i
-
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return th.sigmoid(out)
 
@@ -92,26 +88,22 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         unfolding_steps: int,
         output_size: int,
     ) -> None:
-
-        output_conv = 32
-
         super().__init__(
-            neuron_number, output_conv, unfolding_steps, output_size
+            neuron_number, neuron_number, unfolding_steps, output_size
         )
 
         self.__conv = nn.Sequential(
-            CausalConv1d(input_size, output_conv),
-            nn.ReLU(),
-            nn.BatchNorm1d(output_conv),
-            nn.MaxPool1d(2, 2),
-            CausalConv1d(output_conv, output_conv),
-            nn.ReLU(),
-            nn.BatchNorm1d(output_conv),
-            nn.MaxPool1d(2, 2),
-            CausalConv1d(output_conv, output_conv),
-            nn.ReLU(),
-            nn.MaxPool1d(2, 2),
-            nn.BatchNorm1d(output_conv),
+            *[
+                nn.Sequential(
+                    CausalConv1d(
+                        input_size if i == 0 else neuron_number, neuron_number
+                    ),
+                    nn.Mish(),
+                    nn.BatchNorm1d(neuron_number),
+                    nn.MaxPool1d(2, 2),
+                )
+                for i in range(3)
+            ]
         )
 
     def _process_input(self, i: th.Tensor) -> th.Tensor:
@@ -126,9 +118,6 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
 
 
 class LiquidRecurrentClf(LiquidRecurrent):
-    def _process_input(self, i: th.Tensor) -> th.Tensor:
-        return i
-
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return out  # cross entropy perform softmax before nll
 
@@ -137,9 +126,6 @@ class LiquidRecurrentClf(LiquidRecurrent):
 
 
 class LiquidRecurrentSingleClf(LiquidRecurrent):
-    def _process_input(self, i: th.Tensor) -> th.Tensor:
-        return i
-
     def _output_activation(self, out: th.Tensor) -> th.Tensor:
         return out  # cross entropy perform softmax before nll
 
