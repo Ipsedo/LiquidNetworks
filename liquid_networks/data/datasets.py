@@ -8,7 +8,6 @@ from typing import List, Tuple
 
 import pandas as pd
 import torch as th
-from pandarallel import pandarallel
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -50,13 +49,11 @@ class HouseholdPowerDataset(AbstractDataset):
         # pylint: disable=too-many-locals
         super().__init__(csv_path)
 
-        pandarallel.initialize()
-
         self.__seq_length = 32
 
         self.__df = pd.read_csv(csv_path, sep=";", header=0, low_memory=False)
         self.__df = self.__df.iloc[len(self.__df) % self.__seq_length :, :]
-        self.__df["date"] = self.__df.parallel_apply(
+        self.__df["date"] = self.__df.apply(
             lambda r: datetime.strptime(
                 f"{r['Date']} {r['Time']}", "%d/%m/%Y %H:%M:%S"
             ),
