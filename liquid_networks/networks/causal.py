@@ -15,7 +15,10 @@ class CausalConv1d(nn.Conv1d):
             stride=(1,),
         )
 
+        self.__padding = self.__kernel_size // 2 + self.__kernel_size % 2
+
     # pylint: disable=arguments-renamed
     def forward(self, x: th.Tensor) -> th.Tensor:
-        x = F.pad(x, (self.__kernel_size // 2 + self.__kernel_size % 2, 0))
-        return super().forward(x)
+        return super().forward(F.pad(x, (self.__padding, 0)))[
+            :, :, : -self.__padding
+        ]

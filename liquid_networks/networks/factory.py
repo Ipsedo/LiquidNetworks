@@ -3,7 +3,12 @@ from typing import Callable, Dict, Final, Literal, Type
 
 import torch as th
 
-from .functions import cross_entropy, cross_entropy_time_series, mse_loss
+from .functions import (
+    cross_entropy,
+    cross_entropy_time_series,
+    kl_div,
+    mse_loss,
+)
 from .recurent import (
     LiquidRecurrent,
     LiquidRecurrentBrainActivity,
@@ -23,7 +28,7 @@ _LOSS_DICT: Final[Dict[str, Callable[[th.Tensor, th.Tensor], th.Tensor]]] = {
     "regression": mse_loss,
     "classification": cross_entropy_time_series,
     "single_classification": cross_entropy,
-    "brain_activity": mse_loss,
+    "brain_activity": kl_div,
 }
 
 TaskType = Literal[

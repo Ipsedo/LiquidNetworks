@@ -20,4 +20,4 @@ def mse_loss(outputs: th.Tensor, targets: th.Tensor) -> th.Tensor:
 
 
 def kl_div(outputs: th.Tensor, targets: th.Tensor) -> th.Tensor:
-    return F.kl_div(outputs, targets, reduction="batchmean")
+    return F.kl_div(outputs.log(), targets, reduction="batchmean")
