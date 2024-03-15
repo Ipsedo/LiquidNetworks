@@ -88,21 +88,24 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         unfolding_steps: int,
         output_size: int,
     ) -> None:
+        nb_layer = 6
         super().__init__(
-            neuron_number, neuron_number, unfolding_steps, output_size
+            neuron_number,
+            input_size * nb_layer,
+            unfolding_steps,
+            output_size,
         )
 
         self.__conv = nn.Sequential(
             *[
                 nn.Sequential(
                     CausalConv1d(
-                        input_size if i == 0 else neuron_number, neuron_number
+                        input_size if i == 0 else input_size * i,
+                        input_size * (i + 1),
                     ),
                     nn.Mish(),
-                    nn.BatchNorm1d(neuron_number),
-                    nn.MaxPool1d(2, 2),
                 )
-                for i in range(3)
+                for i in range(nb_layer)
             ]
         )
 

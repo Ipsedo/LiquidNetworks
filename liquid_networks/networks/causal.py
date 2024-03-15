@@ -12,7 +12,7 @@ class CausalConv1d(nn.Conv1d):
             out_channels,
             (self.__kernel_size,),
             padding=(0,),
-            stride=(1,),
+            stride=(2,),
         )
 
         self.__padding = self.__kernel_size // 2 + self.__kernel_size % 2
