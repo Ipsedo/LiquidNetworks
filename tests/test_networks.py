@@ -4,7 +4,7 @@ from typing import Type
 import pytest
 import torch as th
 
-from liquid_networks.networks.cell import LiquidCell, Model
+from liquid_networks.networks.cell import CellModel, LiquidCell
 from liquid_networks.networks.recurent import (
     LiquidRecurrent,
     LiquidRecurrentBrainActivity,
@@ -17,7 +17,7 @@ from liquid_networks.networks.recurent import (
 @pytest.mark.parametrize("neuron_number", [2, 4])
 @pytest.mark.parametrize("input_size", [2, 4])
 def test_f(batch_size: int, neuron_number: int, input_size: int) -> None:
-    m = Model(neuron_number, input_size)
+    m = CellModel(neuron_number, input_size)
 
     x_t = th.randn(batch_size, neuron_number)
     input_t = th.randn(batch_size, input_size)

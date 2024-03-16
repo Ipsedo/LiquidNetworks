@@ -4,7 +4,7 @@ from torch import nn
 from torch.nn import functional as F
 
 
-class Model(nn.Module):
+class CellModel(nn.Module):
     def __init__(
         self,
         neuron_number: int,
@@ -44,7 +44,7 @@ class LiquidCell(nn.Module):
         self.__a = nn.Parameter(th.randn(1, neuron_number))
         self.__tau = nn.Parameter(th.randn(1, neuron_number))
 
-        self.__f = Model(neuron_number, input_size)
+        self.__f = CellModel(neuron_number, input_size)
 
         self.__unfolding_steps = unfolding_steps
 
