@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
+from math import sqrt
 from statistics import mean
 from typing import List
 
@@ -10,6 +11,7 @@ from torch.nn import functional as F
 
 from .causal import CausalConv1d
 from .cell import LiquidCell
+from .norm import TimeLayerNorm
 
 
 class LiquidRecurrent(ABC, nn.Module):
@@ -89,9 +91,11 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         output_size: int,
     ) -> None:
         nb_layer = 6
+        factor = sqrt(2)
+
         super().__init__(
             neuron_number,
-            input_size * nb_layer,
+            int(input_size * factor**nb_layer),
             unfolding_steps,
             output_size,
         )
@@ -100,10 +104,13 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
             *[
                 nn.Sequential(
                     CausalConv1d(
-                        input_size if i == 0 else input_size * i,
-                        input_size * (i + 1),
+                        input_size
+                        if i == 0
+                        else int(input_size * factor**i),
+                        int(input_size * factor ** (i + 1)),
                     ),
                     nn.Mish(),
+                    TimeLayerNorm(int(input_size * factor ** (i + 1))),
                 )
                 for i in range(nb_layer)
             ]
