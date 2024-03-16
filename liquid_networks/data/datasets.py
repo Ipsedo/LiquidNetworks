@@ -11,7 +11,7 @@ import torch as th
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..networks import TaskType
+from .. import networks
 from .transform import min_max_normalize_column, standardize_column
 
 
@@ -33,7 +33,7 @@ class AbstractDataset(ABC, Dataset):
 
     @property
     @abstractmethod
-    def task_type(self) -> TaskType:
+    def task_type(self) -> networks.TaskType:
         pass
 
     def __str__(self) -> str:
@@ -111,7 +111,7 @@ class HouseholdPowerDataset(AbstractDataset):
         )
 
     @property
-    def task_type(self) -> TaskType:
+    def task_type(self) -> networks.TaskType:
         return "regression"
 
 
@@ -212,8 +212,8 @@ class MotionSenseDataset(AbstractDataset):
         )
 
     @property
-    def task_type(self) -> TaskType:
-        return "single_classification"
+    def task_type(self) -> networks.TaskType:
+        return "last_classification"
 
 
 class HarmfulBrainActivityDataset(AbstractDataset):
@@ -245,5 +245,5 @@ class HarmfulBrainActivityDataset(AbstractDataset):
         )
 
     @property
-    def task_type(self) -> TaskType:
+    def task_type(self) -> networks.TaskType:
         return "brain_activity"

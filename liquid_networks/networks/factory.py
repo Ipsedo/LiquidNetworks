@@ -12,27 +12,26 @@ from .functions import (
 from .recurent import (
     LiquidRecurrent,
     LiquidRecurrentBrainActivity,
-    LiquidRecurrentClf,
+    LiquidRecurrentLast,
     LiquidRecurrentReg,
-    LiquidRecurrentSingleClf,
 )
 
 _MODEL_DICT: Final[Dict[str, Type[LiquidRecurrent]]] = {
     "regression": LiquidRecurrentReg,
-    "classification": LiquidRecurrentClf,
-    "single_classification": LiquidRecurrentSingleClf,
+    "classification": LiquidRecurrent,
+    "last_classification": LiquidRecurrentLast,
     "brain_activity": LiquidRecurrentBrainActivity,
 }
 
 _LOSS_DICT: Final[Dict[str, Callable[[th.Tensor, th.Tensor], th.Tensor]]] = {
     "regression": mse_loss,
     "classification": cross_entropy_time_series,
-    "single_classification": cross_entropy,
+    "last_classification": cross_entropy,
     "brain_activity": kl_div,
 }
 
 TaskType = Literal[
-    "regression", "classification", "single_classification", "brain_activity"
+    "regression", "classification", "last_classification", "brain_activity"
 ]
 
 

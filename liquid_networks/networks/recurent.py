@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from abc import ABC, abstractmethod
 from math import sqrt
 from statistics import mean
 from typing import List
@@ -14,7 +13,7 @@ from .cell import LiquidCell
 from .norm import TimeLayerNorm
 
 
-class LiquidRecurrent(ABC, nn.Module):
+class LiquidRecurrent(nn.Module):
     def __init__(
         self,
         neuron_number: int,
@@ -37,13 +36,12 @@ class LiquidRecurrent(ABC, nn.Module):
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         return i
 
-    @abstractmethod
-    def _output_activation(self, out: th.Tensor) -> th.Tensor:
-        pass
+    def _output_processing(self, out: th.Tensor) -> th.Tensor:
+        out = self.__to_output(out)
+        return out
 
-    @abstractmethod
-    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
-        pass
+    def _sequence_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
+        return th.stack(outputs, -1)
 
     def forward(self, i: th.Tensor, delta_t: th.Tensor) -> th.Tensor:
         b, _, _ = i.size()
@@ -55,9 +53,9 @@ class LiquidRecurrent(ABC, nn.Module):
 
         for t in range(i.size(2)):
             x_t = self.__cell(x_t, i[:, :, t], delta_t[:, t])
-            results.append(self._output_activation(self.__to_output(x_t)))
+            results.append(self._output_processing(x_t))
 
-        return self._outputs_post_processing(results)
+        return self._sequence_processing(results)
 
     def count_parameters(self) -> int:
         return sum(
@@ -75,11 +73,8 @@ class LiquidRecurrent(ABC, nn.Module):
 
 
 class LiquidRecurrentReg(LiquidRecurrent):
-    def _output_activation(self, out: th.Tensor) -> th.Tensor:
-        return th.sigmoid(out)
-
-    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
-        return th.stack(outputs, -1)
+    def _output_processing(self, out: th.Tensor) -> th.Tensor:
+        return th.sigmoid(super()._output_processing(out))
 
 
 class LiquidRecurrentBrainActivity(LiquidRecurrent):
@@ -120,24 +115,16 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         out: th.Tensor = self.__conv(i)
         return out
 
-    def _output_activation(self, out: th.Tensor) -> th.Tensor:
+    def _output_processing(self, out: th.Tensor) -> th.Tensor:
+        return out  # perform max pool before _to_output
+
+    def _sequence_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
+        out = th.stack(outputs, dim=-1)
+        out = th.amax(out, dim=-1)
+        out = super()._output_processing(out)
         return F.softmax(out, dim=-1)
 
-    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
-        return outputs[-1]
 
-
-class LiquidRecurrentClf(LiquidRecurrent):
-    def _output_activation(self, out: th.Tensor) -> th.Tensor:
-        return out  # cross entropy perform softmax before nll
-
-    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
-        return th.stack(outputs, -1)
-
-
-class LiquidRecurrentSingleClf(LiquidRecurrent):
-    def _output_activation(self, out: th.Tensor) -> th.Tensor:
-        return out  # cross entropy perform softmax before nll
-
-    def _outputs_post_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
+class LiquidRecurrentLast(LiquidRecurrent):
+    def _sequence_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
         return outputs[-1]

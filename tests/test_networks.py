@@ -8,9 +8,8 @@ from liquid_networks.networks.cell import LiquidCell, Model
 from liquid_networks.networks.recurent import (
     LiquidRecurrent,
     LiquidRecurrentBrainActivity,
-    LiquidRecurrentClf,
+    LiquidRecurrentLast,
     LiquidRecurrentReg,
-    LiquidRecurrentSingleClf,
 )
 
 
@@ -57,7 +56,7 @@ def test_cell(
 @pytest.mark.parametrize("time_steps", [2, 4])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [LiquidRecurrentReg, LiquidRecurrentClf]
+    "ltc_constructor", [LiquidRecurrentReg, LiquidRecurrent]
 )
 def test_recurrent(
     batch_size: int,
@@ -90,7 +89,7 @@ def test_recurrent(
 @pytest.mark.parametrize("time_steps", [512, 256])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [LiquidRecurrentBrainActivity, LiquidRecurrentSingleClf]
+    "ltc_constructor", [LiquidRecurrentBrainActivity, LiquidRecurrentLast]
 )
 def test_recurrent_single(
     batch_size: int,
