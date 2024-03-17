@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from math import sqrt
 from statistics import mean
 from typing import List
 
@@ -86,11 +85,11 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         output_size: int,
     ) -> None:
         nb_layer = 6
-        factor = sqrt(2)
+        encoder_size = 32
 
         super().__init__(
             neuron_number,
-            int(input_size * factor**nb_layer),
+            encoder_size,
             unfolding_steps,
             output_size,
         )
@@ -99,13 +98,11 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
             *[
                 nn.Sequential(
                     CausalConv1d(
-                        input_size
-                        if i == 0
-                        else int(input_size * factor**i),
-                        int(input_size * factor ** (i + 1)),
+                        input_size if i == 0 else encoder_size,
+                        encoder_size,
                     ),
                     nn.Mish(),
-                    TimeLayerNorm(int(input_size * factor ** (i + 1))),
+                    TimeLayerNorm(encoder_size),
                 )
                 for i in range(nb_layer)
             ]
