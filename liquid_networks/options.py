@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
-from typing import Any, Callable, Dict, NamedTuple, Union
+from typing import Any, Callable, Dict, NamedTuple, Optional, Union
 
 import torch as th
 
@@ -44,11 +44,18 @@ class TrainOptions(NamedTuple):
     run_name: str
     metric_window_size: int
     dataset_name: DatasetNames
-    data_path: str
+    train_data_path: str
+    valid_data_path: Optional[str]
     save_every: int
+    eval_every: int
 
     def to_dict(self) -> Dict[str, Any]:
         return dict(self._asdict())  # pylint: disable=no-member
 
-    def get_dataset(self) -> AbstractDataset:
-        return get_dataset_constructor(self.dataset_name)(self.data_path)
+    def get_train_dataset(self) -> AbstractDataset:
+        return get_dataset_constructor(self.dataset_name)(self.train_data_path)
+
+    def get_valid_dataset(self) -> Optional[AbstractDataset]:
+        if self.valid_data_path is None:
+            return None
+        return get_dataset_constructor(self.dataset_name)(self.valid_data_path)

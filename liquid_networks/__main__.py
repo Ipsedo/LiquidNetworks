@@ -36,8 +36,10 @@ def main() -> None:
         default="household_power",
         choices=get_args(DatasetNames),
     )
-    train_parser.add_argument("--data-path", type=str, required=True)
+    train_parser.add_argument("--train-data-path", type=str, required=True)
+    train_parser.add_argument("--valid-data-path", type=str)
     train_parser.add_argument("--save-every", type=int, default=1024)
+    train_parser.add_argument("--eval-every", type=int, default=256)
 
     args = parser.parse_args()
 
@@ -59,8 +61,10 @@ def main() -> None:
             args.run_name,
             args.metric_window_size,
             args.dataset,
-            args.data_path,
+            args.train_data_path,
+            args.valid_data_path,
             args.save_every,
+            args.eval_every,
         )
 
         train(model_options, train_options)
