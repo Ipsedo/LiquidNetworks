@@ -77,7 +77,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 y = y.to(device=device)
 
                 out = ltc(f, t)
-                loss = loss_fn(out, y)
+                loss = loss_fn(out, y, "batchmean")
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
@@ -96,13 +96,14 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                     step=tqdm_bar.n,
                 )
 
-                tqdm_bar.set_description(
+                tqdm_description = (
                     f"Epoch {e:03} : "
                     f"loss = {loss_metric.get_last_metric():.4f}, "
                     f"loss_smoothed = {loss_metric.get_smoothed_metric():.4f}, "
                     f"valid_loss = {valid_metric.get_last_metric():.4f}, "
                     f"grad_norm = {grad_norm:.4f}"
                 )
+                tqdm_bar.set_description(tqdm_description)
 
                 if tqdm_bar.n % train_options.save_every == 0:
                     th.save(
@@ -133,23 +134,28 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                             num_workers=6,
                         )
 
-                        results = []
-                        targets = []
+                        valid_loss = 0.0
+                        nb_valid_examples = 0
 
-                        for f_v, t_v, y_v in tqdm(
-                            valid_dataloader, position=1, leave=False
-                        ):
+                        for i, (f_v, t_v, y_v) in enumerate(valid_dataloader):
                             f_v = f_v.to(device=device)
                             t_v = t_v.to(device=device)
                             y_v = y_v.to(device=device)
 
-                            results.append(ltc(f_v, t_v))
-                            targets.append(y_v)
+                            valid_loss += loss_fn(
+                                ltc(f_v, t_v), y_v, "sum"
+                            ).item()
 
-                        results_t = th.cat(results, dim=0)
-                        targets_t = th.cat(targets, dim=0)
+                            tqdm_bar.set_description(
+                                f"{tqdm_description}, "
+                                f"Eval {i + 1} / {len(valid_dataset) // train_options.batch_size}"
+                            )
 
-                        valid_metric.add_result(loss_fn(results_t, targets_t))
+                            nb_valid_examples += f_v.size(0)
+
+                        valid_loss /= nb_valid_examples
+
+                        valid_metric.add_result(valid_loss)
 
                         ltc.train()
 

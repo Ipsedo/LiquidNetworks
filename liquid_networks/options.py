@@ -7,6 +7,7 @@ import torch as th
 from .data import AbstractDataset, DatasetNames, get_dataset_constructor
 from .networks import (
     LiquidRecurrent,
+    ReductionType,
     TaskType,
     get_loss_function,
     get_model_constructor,
@@ -29,7 +30,9 @@ class ModelOptions(NamedTuple):
             self.output_size,
         )
 
-    def get_loss_function(self) -> Callable[[th.Tensor, th.Tensor], th.Tensor]:
+    def get_loss_function(
+        self,
+    ) -> Callable[[th.Tensor, th.Tensor, ReductionType], th.Tensor]:
         return get_loss_function(self.task_type)
 
     def to_dict(self) -> Dict[str, Any]:

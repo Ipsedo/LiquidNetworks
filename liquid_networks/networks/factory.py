@@ -4,6 +4,7 @@ from typing import Callable, Dict, Final, Literal, Type
 import torch as th
 
 from .functions import (
+    ReductionType,
     cross_entropy,
     cross_entropy_time_series,
     kl_div,
@@ -23,7 +24,9 @@ _MODEL_DICT: Final[Dict[str, Type[LiquidRecurrent]]] = {
     "brain_activity": LiquidRecurrentBrainActivity,
 }
 
-_LOSS_DICT: Final[Dict[str, Callable[[th.Tensor, th.Tensor], th.Tensor]]] = {
+_LOSS_DICT: Final[
+    Dict[str, Callable[[th.Tensor, th.Tensor, ReductionType], th.Tensor]]
+] = {
     "regression": mse_loss,
     "classification": cross_entropy_time_series,
     "last_classification": cross_entropy,
@@ -41,5 +44,5 @@ def get_model_constructor(task_type: TaskType) -> Type[LiquidRecurrent]:
 
 def get_loss_function(
     task_type: TaskType,
-) -> Callable[[th.Tensor, th.Tensor], th.Tensor]:
+) -> Callable[[th.Tensor, th.Tensor, ReductionType], th.Tensor]:
     return _LOSS_DICT[task_type]
