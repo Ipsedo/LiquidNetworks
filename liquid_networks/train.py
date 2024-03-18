@@ -56,8 +56,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 train_options.epoch
                 * len(train_dataset)
                 // train_options.batch_size
-            ),
-            position=0,
+            )
         )
 
         for e in range(train_options.epoch):
@@ -90,7 +89,6 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                     {
                         "loss": loss_metric.get_last_metric(),
                         "loss_smoothed": loss_metric.get_smoothed_metric(),
-                        "valid_loss": valid_metric.get_last_metric(),
                         "grad_norm": grad_norm,
                     },
                     step=tqdm_bar.n,
@@ -154,8 +152,12 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                             nb_valid_examples += f_v.size(0)
 
                         valid_loss /= nb_valid_examples
-
                         valid_metric.add_result(valid_loss)
+                        mlflow.log_metric(
+                            "valid_loss",
+                            valid_metric.get_last_metric(),
+                            step=tqdm_bar.n,
+                        )
 
                         ltc.train()
 
