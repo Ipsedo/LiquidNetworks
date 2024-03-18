@@ -6,19 +6,21 @@ from torch.nn import functional as F
 
 class CausalConv1d(nn.Conv1d):
     def __init__(self, in_channels: int, out_channels: int) -> None:
-        self.__kernel_size = 3
+        dilation = 1
+        kernel_size = 3
+        stride = 2
+
         super().__init__(
             in_channels,
             out_channels,
-            (self.__kernel_size,),
+            (kernel_size,),
             padding=(0,),
-            stride=(2,),
+            stride=(stride,),
+            dilation=dilation,
         )
 
-        self.__padding = self.__kernel_size // 2 + self.__kernel_size % 2
+        self.__padding = (kernel_size - 1) * dilation
 
     # pylint: disable=arguments-renamed
     def forward(self, x: th.Tensor) -> th.Tensor:
-        return super().forward(F.pad(x, (self.__padding, 0)))[
-            :, :, : -self.__padding
-        ]
+        return super().forward(F.pad(x, (self.__padding, 0)))

@@ -101,6 +101,7 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
                         encoder_dim,
                     ),
                     nn.Mish(),
+                    nn.BatchNorm1d(encoder_dim),
                 )
                 for i in range(nb_layer)
             ]
