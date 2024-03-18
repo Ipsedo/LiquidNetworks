@@ -26,9 +26,9 @@ def main() -> None:
 
     train_parser.add_argument("run_name", type=str)
     train_parser.add_argument("output_folder", type=str)
-    train_parser.add_argument("--epoch", type=int, default=100)
+    train_parser.add_argument("--epoch", type=int, default=200)
     train_parser.add_argument("--batch-size", type=int, default=128)
-    train_parser.add_argument("--learning-rate", type=float, default=1e-3)
+    train_parser.add_argument("--learning-rate", type=float, default=1e-4)
     train_parser.add_argument("--metric-window-size", type=int, default=64)
     train_parser.add_argument(
         "--dataset",
@@ -39,7 +39,7 @@ def main() -> None:
     train_parser.add_argument("--train-data-path", type=str, required=True)
     train_parser.add_argument("--valid-data-path", type=str)
     train_parser.add_argument("--save-every", type=int, default=1024)
-    train_parser.add_argument("--eval-every", type=int, default=256)
+    train_parser.add_argument("--eval-every", type=int, default=1024)
 
     args = parser.parse_args()
 
