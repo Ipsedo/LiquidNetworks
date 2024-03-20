@@ -12,7 +12,7 @@ class CellModel(nn.Module):
     ) -> None:
         super().__init__()
 
-        std = 1.0
+        std = 1e-3
 
         self.__weights = nn.Linear(input_size, neuron_number, bias=False)
         self.__recurrent_weights = nn.Linear(
@@ -41,10 +41,8 @@ class LiquidCell(nn.Module):
     ) -> None:
         super().__init__()
 
-        std = 1.0
-
-        self.__a = nn.Parameter(th.randn(1, neuron_number) * std)
-        self.__tau = nn.Parameter(th.abs(th.randn(1, neuron_number)) * std)
+        self.__a = nn.Parameter(th.ones(1, neuron_number))
+        self.__tau = nn.Parameter(th.ones(1, neuron_number))
 
         self.__f = CellModel(neuron_number, input_size)
 
