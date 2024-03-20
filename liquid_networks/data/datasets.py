@@ -237,7 +237,9 @@ class HarmfulBrainActivityDataset(AbstractDataset):
         self, index: int
     ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
         file_index = self.__index_list[index]
-        features = th.load(join(self._data_path, f"{file_index}_eeg.pt"))
+        features = th.abs(
+            th.load(join(self._data_path, f"{file_index}_eeg.pt"))
+        )
         return (
             features,
             th.ones(features.size(1), dtype=th.float),

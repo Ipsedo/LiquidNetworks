@@ -7,7 +7,6 @@ import torch as th
 from torch import nn
 from torch.nn import functional as F
 
-from .causal import CausalConv1d
 from .cell import LiquidCell
 
 
@@ -76,48 +75,11 @@ class LiquidRecurrentReg(LiquidRecurrent):
 
 
 class LiquidRecurrentBrainActivity(LiquidRecurrent):
-    def __init__(
-        self,
-        neuron_number: int,
-        input_size: int,
-        unfolding_steps: int,
-        output_size: int,
-    ) -> None:
-        nb_layer = 6
-        encoder_dim = neuron_number
-
-        super().__init__(
-            neuron_number,
-            encoder_dim,
-            unfolding_steps,
-            output_size,
-        )
-
-        self.__conv = nn.Sequential(
-            *[
-                nn.Sequential(
-                    CausalConv1d(
-                        input_size if i == 0 else encoder_dim,
-                        encoder_dim,
-                    ),
-                    nn.Mish(),
-                )
-                for i in range(nb_layer)
-            ]
-        )
-
-    def _process_input(self, i: th.Tensor) -> th.Tensor:
-        out: th.Tensor = self.__conv(i)
-        return out
-
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
-        return out  # perform max pool before _to_output
+        return F.softmax(super()._output_processing(out), dim=1)
 
     def _sequence_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
-        out = th.stack(outputs, dim=-1)
-        out = th.amax(out, dim=-1)
-        out = super()._output_processing(out)
-        return F.softmax(out, dim=-1)
+        return outputs[-1]
 
 
 class LiquidRecurrentLast(LiquidRecurrent):
