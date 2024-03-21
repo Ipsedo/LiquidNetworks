@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from math import sqrt
 from statistics import mean
 from typing import List
 
@@ -7,7 +8,9 @@ import torch as th
 from torch import nn
 from torch.nn import functional as F
 
+from .causal import CausalConv1d
 from .cell import LiquidCell
+from .norm import TimeLayerNorm
 
 
 class LiquidRecurrent(nn.Module):
@@ -75,8 +78,46 @@ class LiquidRecurrentReg(LiquidRecurrent):
 
 
 class LiquidRecurrentBrainActivity(LiquidRecurrent):
+    def __init__(
+        self,
+        neuron_number: int,
+        input_size: int,
+        unfolding_steps: int,
+        output_size: int,
+    ) -> None:
+        nb_layer = 6
+        factor = sqrt(2)
+        encoder_dim = 16
+
+        super().__init__(
+            neuron_number,
+            int(encoder_dim * factor**nb_layer),
+            unfolding_steps,
+            output_size,
+        )
+
+        self.__conv = nn.Sequential(
+            *[
+                nn.Sequential(
+                    CausalConv1d(
+                        input_size
+                        if i == 0
+                        else int(encoder_dim * factor**i),
+                        int(encoder_dim * factor ** (i + 1)),
+                    ),
+                    nn.Mish(),
+                    TimeLayerNorm(int(encoder_dim * factor ** (i + 1))),
+                )
+                for i in range(nb_layer)
+            ]
+        )
+
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        out: th.Tensor = self.__conv(i)
+        return out
+
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
-        return F.softmax(super()._output_processing(out), dim=1)
+        return F.softmax(super()._output_processing(out), dim=-1)
 
     def _sequence_processing(self, outputs: List[th.Tensor]) -> th.Tensor:
         return outputs[-1]

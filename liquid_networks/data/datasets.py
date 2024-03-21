@@ -240,6 +240,10 @@ class HarmfulBrainActivityDataset(AbstractDataset):
         features = th.abs(
             th.load(join(self._data_path, f"{file_index}_eeg.pt"))
         )
+        features = (features - th.mean(features, dim=1, keepdim=True)) / (
+            th.std(features, dim=1, keepdim=True) + 1e-8
+        )
+
         return (
             features,
             th.ones(features.size(1), dtype=th.float),
