@@ -10,7 +10,7 @@ from torch.nn import functional as F
 
 from .causal import CausalConv1d
 from .cell import LiquidCell
-from .norm import TimeLayerNorm
+from .norm import TimeNorm
 
 
 class LiquidRecurrent(nn.Module):
@@ -89,26 +89,33 @@ class LiquidRecurrentBrainActivity(LiquidRecurrent):
         factor = sqrt(2)
         encoder_dim = 16
 
+        channels = [
+            (
+                int(encoder_dim * factor**i),
+                int(encoder_dim * factor ** (i + 1)),
+            )
+            for i in range(nb_layer)
+        ]
+
         super().__init__(
             neuron_number,
-            int(encoder_dim * factor**nb_layer),
+            channels[-1][1],
             unfolding_steps,
             output_size,
         )
 
         self.__conv = nn.Sequential(
+            CausalConv1d(input_size, channels[0][0], dilation=1),
+            nn.Mish(),
+            TimeNorm(channels[0][0]),
             *[
                 nn.Sequential(
-                    CausalConv1d(
-                        input_size
-                        if i == 0
-                        else int(encoder_dim * factor**i),
-                        int(encoder_dim * factor ** (i + 1)),
-                    ),
+                    nn.AvgPool1d(2, 2),
+                    CausalConv1d(c_i, c_o, dilation=1),
                     nn.Mish(),
-                    TimeLayerNorm(int(encoder_dim * factor ** (i + 1))),
+                    TimeNorm(c_o),
                 )
-                for i in range(nb_layer)
+                for c_i, c_o in channels
             ]
         )
 

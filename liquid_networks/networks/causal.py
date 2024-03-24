@@ -5,10 +5,11 @@ from torch.nn import functional as F
 
 
 class CausalConv1d(nn.Conv1d):
-    def __init__(self, in_channels: int, out_channels: int) -> None:
-        dilation = 1
+    def __init__(
+        self, in_channels: int, out_channels: int, dilation: int
+    ) -> None:
         kernel_size = 3
-        stride = 2
+        stride = 1
 
         super().__init__(
             in_channels,
@@ -20,6 +21,14 @@ class CausalConv1d(nn.Conv1d):
         )
 
         self.__padding = (kernel_size - 1) * dilation
+
+        def __init_weights(module: nn.Module) -> None:
+            if isinstance(module, nn.Conv1d):
+                nn.init.xavier_uniform_(module.weight, gain=1e-3)
+                if module.bias is not None:
+                    nn.init.normal_(module.bias, std=1e-3)
+
+        self.apply(__init_weights)
 
     # pylint: disable=arguments-renamed
     def forward(self, x: th.Tensor) -> th.Tensor:

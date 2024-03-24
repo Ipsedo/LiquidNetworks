@@ -17,18 +17,23 @@ from liquid_networks.networks.recurent import (
 @pytest.mark.parametrize("batch_size", [1, 2])
 @pytest.mark.parametrize("in_channels", [1, 2])
 @pytest.mark.parametrize("out_channels", [1, 2])
+@pytest.mark.parametrize("dilation", [1, 2])
 @pytest.mark.parametrize("length", [8, 4])
 def test_causal_conv(
-    batch_size: int, in_channels: int, out_channels: int, length: int
+    batch_size: int,
+    in_channels: int,
+    out_channels: int,
+    dilation: int,
+    length: int,
 ) -> None:
-    c = CausalConv1d(in_channels, out_channels)
+    c = CausalConv1d(in_channels, out_channels, dilation)
     x = th.randn(batch_size, in_channels, length)
     o = c(x)
 
     assert len(o.size()) == 3
     assert o.size(0) == batch_size
     assert o.size(1) == out_channels
-    assert o.size(2) == length // 2
+    assert o.size(2) == length
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
