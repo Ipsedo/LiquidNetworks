@@ -232,7 +232,7 @@ class HarmfulBrainActivityDataset(AbstractDataset):
 
         return (
             features,
-            th.ones(features.size(1), dtype=th.float),
+            th.ones(features.size(0), dtype=th.float),
             th.load(join(self._data_path, f"{file_index}_classes.pt")),
         )
 

@@ -54,7 +54,7 @@ class BrainActivityLiquidRecurrent(SoftmaxLiquidRecurrent):
         output_size: int,
     ) -> None:
         factor = math.sqrt(2)
-        nb_blocks = 3
+        nb_blocks = 6
 
         channels = [
             (
