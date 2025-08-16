@@ -4,43 +4,20 @@ from typing import Type
 import pytest
 import torch as th
 
-from liquid_networks.networks.causal import CausalConv1d
-from liquid_networks.networks.cell import CellModel, LiquidCell
-from liquid_networks.networks.recurent import (
+from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
+from liquid_networks.networks.recurrents import (
+    BrainActivityLiquidRecurrent,
+    LastLiquidRecurrent,
     LiquidRecurrent,
-    LiquidRecurrentBrainActivity,
-    LiquidRecurrentLast,
-    LiquidRecurrentReg,
+    SigmoidLiquidRecurrent,
 )
-
-
-@pytest.mark.parametrize("batch_size", [1, 2])
-@pytest.mark.parametrize("in_channels", [1, 2])
-@pytest.mark.parametrize("out_channels", [1, 2])
-@pytest.mark.parametrize("dilation", [1, 2])
-@pytest.mark.parametrize("length", [8, 4])
-def test_causal_conv(
-    batch_size: int,
-    in_channels: int,
-    out_channels: int,
-    dilation: int,
-    length: int,
-) -> None:
-    c = CausalConv1d(in_channels, out_channels, dilation)
-    x = th.randn(batch_size, in_channels, length)
-    o = c(x)
-
-    assert len(o.size()) == 3
-    assert o.size(0) == batch_size
-    assert o.size(1) == out_channels
-    assert o.size(2) == length
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
 @pytest.mark.parametrize("neuron_number", [2, 4])
 @pytest.mark.parametrize("input_size", [2, 4])
 def test_f(batch_size: int, neuron_number: int, input_size: int) -> None:
-    m = CellModel(neuron_number, input_size)
+    m = CellModel(neuron_number, input_size, th.tanh)
 
     x_t = th.randn(batch_size, neuron_number)
     input_t = th.randn(batch_size, input_size)
@@ -59,7 +36,7 @@ def test_f(batch_size: int, neuron_number: int, input_size: int) -> None:
 def test_cell(
     batch_size: int, neuron_number: int, input_size: int, unfolding_steps: int
 ) -> None:
-    c = LiquidCell(neuron_number, input_size, unfolding_steps)
+    c = LiquidCell(neuron_number, input_size, unfolding_steps, th.tanh)
 
     x_t = th.randn(batch_size, neuron_number)
     input_t = th.randn(batch_size, input_size)
@@ -79,7 +56,7 @@ def test_cell(
 @pytest.mark.parametrize("time_steps", [2, 4])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [LiquidRecurrentReg, LiquidRecurrent]
+    "ltc_constructor", [SigmoidLiquidRecurrent, LiquidRecurrent]
 )
 def test_recurrent(
     batch_size: int,
@@ -91,18 +68,18 @@ def test_recurrent(
     ltc_constructor: Type[LiquidRecurrent],
 ) -> None:
     r = ltc_constructor(
-        neuron_number, input_size, unfolding_steps, output_size
+        neuron_number, input_size, unfolding_steps, th.tanh, output_size
     )
 
-    input_t = th.randn(batch_size, input_size, time_steps)
+    input_t = th.randn(batch_size, time_steps, input_size)
     delta_t = th.rand(batch_size, time_steps)
 
     out = r(input_t, delta_t)
 
     assert len(out.size()) == 3
     assert out.size(0) == batch_size
-    assert out.size(1) == output_size
-    assert out.size(2) == time_steps
+    assert out.size(1) == time_steps
+    assert out.size(2) == output_size
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
@@ -112,7 +89,7 @@ def test_recurrent(
 @pytest.mark.parametrize("time_steps", [512, 256])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [LiquidRecurrentBrainActivity, LiquidRecurrentLast]
+    "ltc_constructor", [BrainActivityLiquidRecurrent, LastLiquidRecurrent]
 )
 def test_recurrent_single(
     batch_size: int,
@@ -124,10 +101,10 @@ def test_recurrent_single(
     ltc_constructor: Type[LiquidRecurrent],
 ) -> None:
     r = ltc_constructor(
-        neuron_number, input_size, unfolding_steps, output_size
+        neuron_number, input_size, unfolding_steps, th.tanh, output_size
     )
 
-    input_t = th.randn(batch_size, input_size, time_steps)
+    input_t = th.randn(batch_size, time_steps, input_size)
     delta_t = th.rand(batch_size, time_steps)
 
     out = r(input_t, delta_t)

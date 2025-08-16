@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
+from typing import Callable
+
 import torch as th
 from torch import nn
-from torch.nn import functional as F
 
 
 class CellModel(nn.Module):
@@ -9,6 +9,7 @@ class CellModel(nn.Module):
         self,
         neuron_number: int,
         input_size: int,
+        activation_function: Callable[[th.Tensor], th.Tensor],
     ) -> None:
         super().__init__()
 
@@ -20,31 +21,35 @@ class CellModel(nn.Module):
         )
         self.__biases = nn.Parameter(th.randn(1, neuron_number) * std)
 
-        def __init_weights(module: nn.Module) -> None:
-            if isinstance(module, nn.Linear):
-                nn.init.xavier_uniform_(module.weight, gain=std)
-
-        self.apply(__init_weights)
+        self.__activation_function = activation_function
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
-        # x_t : (batch, input_size)
-        return F.mish(
+        # x_t: (batch, input_size)
+        return self.__activation_function(
             self.__recurrent_weights(x_t)
             + self.__weights(input_t)
             + self.__biases
         )
 
+    @property
+    def activation_function(self) -> Callable[[th.Tensor], th.Tensor]:
+        return self.__activation_function
+
 
 class LiquidCell(nn.Module):
     def __init__(
-        self, neuron_number: int, input_size: int, unfolding_steps: int
+        self,
+        neuron_number: int,
+        input_size: int,
+        unfolding_steps: int,
+        activation_function: Callable[[th.Tensor], th.Tensor],
     ) -> None:
         super().__init__()
 
         self.__a = nn.Parameter(th.ones(1, neuron_number))
         self.__tau = nn.Parameter(th.ones(1, neuron_number))
 
-        self.__f = CellModel(neuron_number, input_size)
+        self.__f = CellModel(neuron_number, input_size, activation_function)
 
         self.__unfolding_steps = unfolding_steps
 
@@ -60,3 +65,7 @@ class LiquidCell(nn.Module):
             ) / (1 + delta_t * (1 / self.__tau + self.__f(x_t_next, input_t)))
 
         return x_t_next
+
+    @property
+    def activation_function(self) -> Callable[[th.Tensor], th.Tensor]:
+        return self.__f.activation_function

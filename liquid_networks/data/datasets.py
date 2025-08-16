@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from os import listdir
 from os.path import isdir, isfile, join
-from typing import List, Tuple
 
 import pandas as pd
 import torch as th
@@ -12,7 +10,6 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from .. import networks
-from .transform import min_max_normalize_column, standardize_column
 
 
 class AbstractDataset(ABC, Dataset):
@@ -28,7 +25,7 @@ class AbstractDataset(ABC, Dataset):
     @abstractmethod
     def __getitem__(
         self, index: int
-    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
         pass
 
     @property
@@ -71,30 +68,20 @@ class HouseholdPowerDataset(AbstractDataset):
             "Sub_metering_3",
         ]
 
-        # pre-process features
-        for c in self.__features_column:
-            self.__df[c] = standardize_column(self.__df[c].replace("?", "0.0"))
+        self.__df = self.__df[self.__df[self.__target_variable] != "?"]
 
-        # pre-process target
-
-        self.__df[self.__target_variable] = standardize_column(
-            self.__df[self.__target_variable].replace("?", "0.0")
+        self.__df[self.__target_variable] = (
+            self.__df[self.__target_variable].astype(float).fillna(0.0)
         )
-
-        # pre-process time deltas
-        dates = self.__df["date"].tolist()
-        deltas = [(dates[1] - dates[0]).total_seconds()]
-        for i, d in enumerate(dates[1:]):
-            deltas.append((d - dates[i]).total_seconds())
-
-        self.__df["delta"] = min_max_normalize_column(pd.Series(deltas))
+        for c in self.__features_column:
+            self.__df[c] = self.__df[c].astype(float).fillna(0.0)
 
     def __len__(self) -> int:
         return len(self.__df) // self.__seq_length
 
     def __getitem__(
         self, index: int
-    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
         index_start = index * self.__seq_length
         index_end = (index + 1) * self.__seq_length
 
@@ -102,17 +89,16 @@ class HouseholdPowerDataset(AbstractDataset):
 
         target_variable = sub_df[[self.__target_variable]]
         features_df = sub_df[self.__features_column]
-        delta = sub_df["delta"]
 
         return (
-            th.tensor(features_df.to_numpy().T, dtype=th.float),
-            th.tensor(delta.to_numpy(), dtype=th.float),
-            th.tensor(target_variable.to_numpy().T, dtype=th.float),
+            th.tensor(features_df.to_numpy(), dtype=th.float),
+            th.ones(index_end - index_start, dtype=th.float),
+            th.tensor(target_variable.to_numpy(), dtype=th.float),
         )
 
     @property
     def task_type(self) -> networks.TaskType:
-        return "regression"
+        return "positive_regression"
 
 
 # MotionSense Dataset: Sensor Based Human Activity and Attribute Recognition
@@ -132,7 +118,7 @@ class MotionSenseDataset(AbstractDataset):
             dataset_path, "A_DeviceMotion_data", "A_DeviceMotion_data"
         )
 
-        df_list: List[pd.DataFrame] = []
+        df_list: list[pd.DataFrame] = []
 
         for d in listdir(data_path):
             dir_path = join(data_path, d)
@@ -186,15 +172,12 @@ class MotionSenseDataset(AbstractDataset):
             )
         }
 
-        for c in self.__features_columns:
-            self.__df[c] = standardize_column(self.__df[c])
-
     def __len__(self) -> int:
         return len(self.__df) // self.__seq_length
 
     def __getitem__(
         self, index: int
-    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
         index_start = index * self.__seq_length
         index_end = (index + 1) * self.__seq_length
 
@@ -206,7 +189,7 @@ class MotionSenseDataset(AbstractDataset):
         ]
 
         return (
-            th.tensor(features_df.to_numpy().T, dtype=th.float),
+            th.tensor(features_df.to_numpy(), dtype=th.float),
             th.ones(len(features_df), dtype=th.float),
             th.tensor(target_variable, dtype=th.long),
         )
@@ -235,8 +218,11 @@ class HarmfulBrainActivityDataset(AbstractDataset):
 
     def __getitem__(
         self, index: int
-    ) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
         file_index = self.__index_list[index]
+
+        # maybe broken, need update notebook
+        # new shape: (Batch, Time, Features)
         features = th.abs(
             th.load(join(self._data_path, f"{file_index}_eeg.pt"))
         )

@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 import argparse
 from typing import get_args
 
 from .data import DatasetNames
-from .networks import TaskType
+from .networks import ActivationFunction, TaskType
 from .options import ModelOptions, TrainOptions
 from .train import train
 
@@ -17,6 +16,12 @@ def main() -> None:
     parser.add_argument("--output-size", type=int, required=True)
     parser.add_argument(
         "--task-type", type=str, required=True, choices=get_args(TaskType)
+    )
+    parser.add_argument(
+        "--activation-function",
+        type=str,
+        required=True,
+        choices=get_args(ActivationFunction),
     )
     parser.add_argument("--cuda", action="store_true")
 
@@ -49,6 +54,7 @@ def main() -> None:
         args.unfolding_steps,
         args.output_size,
         args.task_type,
+        args.activation_function,
         args.cuda,
     )
 

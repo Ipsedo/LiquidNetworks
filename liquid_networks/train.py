@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from os import mkdir
 from os.path import exists, isdir, join
 
@@ -121,7 +120,8 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
 
                 if (
                     valid_dataset is not None
-                    and tqdm_bar.n % train_options.eval_every == 0
+                    and tqdm_bar.n % train_options.eval_every
+                    == train_options.eval_every - 1
                 ):
                     with th.no_grad():
                         ltc.eval()

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 from statistics import mean
-from typing import List, Union
 
 import torch as th
 
@@ -8,9 +6,9 @@ import torch as th
 class Metric:
     def __init__(self, window_size: int) -> None:
         self.__window_size = window_size
-        self.__result: List[float] = [0.0]
+        self.__result: list[float] = [0.0]
 
-    def add_result(self, res: Union[th.Tensor, float]) -> None:
+    def add_result(self, res: th.Tensor | float) -> None:
         if isinstance(res, th.Tensor):
             res = res.mean()
             res_float = res.item()

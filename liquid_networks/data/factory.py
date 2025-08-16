@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from typing import Dict, Final, Literal, Type
+from typing import Final, Literal, Type
 
 from .datasets import (
     AbstractDataset,
@@ -10,7 +9,7 @@ from .datasets import (
 
 DatasetNames = Literal["household_power", "motion_sense", "brain_activity"]
 
-_DATASET_DICT: Final[Dict[str, Type[AbstractDataset]]] = {
+_DATASET_DICT: Final[dict[str, Type[AbstractDataset]]] = {
     "household_power": HouseholdPowerDataset,
     "motion_sense": MotionSenseDataset,
     "brain_activity": HarmfulBrainActivityDataset,
