@@ -14,7 +14,7 @@ class HouseholdPowerDataset(AbstractDataset):
         # pylint: disable=too-many-locals
         super().__init__(csv_path)
 
-        self.__seq_length = 32
+        self.__seq_length = 256
 
         self.__df = pd.read_csv(csv_path, sep=";", header=0, low_memory=False)
         self.__df = self.__df.iloc[len(self.__df) % self.__seq_length :, :]
