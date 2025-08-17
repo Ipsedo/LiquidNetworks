@@ -53,10 +53,10 @@ class HouseholdPowerDataset(AbstractDataset):
         index_start = index * self.__seq_length
         index_end = (index + 1) * self.__seq_length
 
-        sub_df = self.__df.iloc[index_start:index_end, :]
+        sub_df = self.__df.iloc[index_start : index_end + 1, :]
 
-        target_variable = sub_df[[self.__target_variable]]
-        features_df = sub_df[self.__features_column]
+        features_df = sub_df[self.__features_column].iloc[:-1, :]
+        target_variable = sub_df[[self.__target_variable]].iloc[1:, :]
 
         return (
             th.tensor(features_df.to_numpy(), dtype=th.float),
