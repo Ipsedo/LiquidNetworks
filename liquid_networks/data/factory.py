@@ -1,7 +1,7 @@
 from typing import Final, Literal, Type
 
+from .abstract_dataset import AbstractDataset
 from .datasets import (
-    AbstractDataset,
     HarmfulBrainActivityDataset,
     HouseholdPowerDataset,
     MotionSenseDataset,
