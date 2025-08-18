@@ -55,7 +55,7 @@ def kl_div(
     outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
 ) -> th.Tensor:
     return _reduce(
-        th_f.kl_div(outputs.log(), targets, reduction="none"),
+        th_f.kl_div(outputs.log(), targets, reduction="none").sum(dim=-1),
         reduction,
     )
 

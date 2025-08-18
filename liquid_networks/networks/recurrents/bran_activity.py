@@ -37,10 +37,8 @@ class CausalConvBlock(nn.Sequential):
         super().__init__(
             CausalConv1d(in_channels, out_channels, 3, 1),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
             CausalConv1d(out_channels, out_channels, 3, 2),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
         )
 
 
