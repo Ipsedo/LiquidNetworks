@@ -7,8 +7,8 @@ from .functions import (
     LossFunctionType,
     cross_entropy,
     cross_entropy_time_series,
-    kl_div,
     mse_loss_time_series,
+    soft_cross_entropy,
 )
 from .recurrents import (
     BrainActivityLiquidRecurrent,
@@ -33,7 +33,7 @@ _LOSS_DICT: Final[dict[str, LossFunctionType]] = {
     "classification": cross_entropy_time_series,
     "multi_labels": mse_loss_time_series,
     "last_classification": cross_entropy,
-    "brain_activity": kl_div,
+    "brain_activity": soft_cross_entropy,
 }
 
 _ACT_FN_DICT: Final[dict[str, Callable[[th.Tensor], th.Tensor]]] = {
