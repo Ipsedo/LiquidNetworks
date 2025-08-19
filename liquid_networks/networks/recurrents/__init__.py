@@ -1,7 +1,8 @@
-from .bran_activity import BrainActivityLiquidRecurrent
-from .simple import (
+from .simple import LiquidRecurrent
+from .variants import (
     LastLiquidRecurrent,
-    LiquidRecurrent,
+    LastSoftmaxLiquidRecurrent,
     SigmoidLiquidRecurrent,
     SoftmaxLiquidRecurrent,
+    SoftplusLiquidRecurrent,
 )

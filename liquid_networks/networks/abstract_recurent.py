@@ -40,10 +40,12 @@ class AbstractLiquidRecurrent(ABC, nn.Module):
         pass
 
     def forward(self, i: th.Tensor, delta_t: th.Tensor) -> th.Tensor:
-        b, _, _ = i.size()
-
-        x_t = self._get_first_x(b)
+        x_t = self._get_first_x(i.size(0))
         i = self._process_input(i)
+
+        assert (
+            len(i.size()) == 3
+        ), "Processed input needs to have 3 dimensions (Batch, Time, Features)"
 
         results = []
 

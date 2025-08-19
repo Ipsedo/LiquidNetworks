@@ -11,12 +11,12 @@ from .functions import (
     soft_cross_entropy,
 )
 from .recurrents import (
-    BrainActivityLiquidRecurrent,
     LastLiquidRecurrent,
+    LastSoftmaxLiquidRecurrent,
     LiquidRecurrent,
     SigmoidLiquidRecurrent,
+    SoftplusLiquidRecurrent,
 )
-from .recurrents.simple import SoftplusLiquidRecurrent
 
 _MODEL_DICT: Final[dict[str, Type[LiquidRecurrent]]] = {
     "regression": LiquidRecurrent,
@@ -24,7 +24,7 @@ _MODEL_DICT: Final[dict[str, Type[LiquidRecurrent]]] = {
     "classification": LiquidRecurrent,
     "multi_labels": SigmoidLiquidRecurrent,
     "last_classification": LastLiquidRecurrent,
-    "brain_activity": BrainActivityLiquidRecurrent,
+    "brain_activity": LastSoftmaxLiquidRecurrent,
 }
 
 _LOSS_DICT: Final[dict[str, LossFunctionType]] = {

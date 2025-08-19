@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from typing import Type
 
 import pytest
@@ -6,8 +5,8 @@ import torch as th
 
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
 from liquid_networks.networks.recurrents import (
-    BrainActivityLiquidRecurrent,
     LastLiquidRecurrent,
+    LastSoftmaxLiquidRecurrent,
     LiquidRecurrent,
     SigmoidLiquidRecurrent,
 )
@@ -89,7 +88,7 @@ def test_recurrent(
 @pytest.mark.parametrize("time_steps", [512, 256])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [BrainActivityLiquidRecurrent, LastLiquidRecurrent]
+    "ltc_constructor", [LastSoftmaxLiquidRecurrent, LastLiquidRecurrent]
 )
 def test_recurrent_single(
     batch_size: int,

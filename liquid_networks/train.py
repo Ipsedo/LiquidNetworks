@@ -1,4 +1,4 @@
-from os import mkdir
+from os import makedirs
 from os.path import exists, isdir, join
 
 import mlflow
@@ -15,7 +15,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-statements
 
     if not exists(train_options.output_folder):
-        mkdir(train_options.output_folder)
+        makedirs(train_options.output_folder)
     elif not isdir(train_options.output_folder):
         raise NotADirectoryError(train_options.output_folder)
 
