@@ -7,8 +7,8 @@ from .functions import (
     LossFunctionType,
     cross_entropy,
     cross_entropy_time_series,
+    kl_div,
     mse_loss_time_series,
-    soft_cross_entropy, kl_div,
 )
 from .recurrents import (
     LastLiquidRecurrent,
