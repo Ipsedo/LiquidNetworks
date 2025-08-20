@@ -24,7 +24,7 @@ class LiquidRecurrent(AbstractLiquidRecurrent):
 
     def _get_first_x(self, batch_size: int) -> th.Tensor:
         return self.cell_activation_function(
-            th.randn(
+            th.zeros(
                 batch_size,
                 self.__neuron_number,
                 device=next(self.parameters()).device,
