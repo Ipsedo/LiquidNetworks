@@ -72,8 +72,6 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
             *[CausalConvBlock(c_i, c_o) for c_i, c_o in channels]
         )
 
-        self.__pooling = nn.Linear(neuron_number, 1)
-
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         encoded_input: th.Tensor = self.__conv_encoder(
             i.transpose(1, 2)
@@ -84,14 +82,9 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        stacked_outputs = th.stack(outputs, dim=1)
         return th_f.softmax(
             super()._output_processing(
-                th.sum(
-                    stacked_outputs
-                    * th_f.softmax(self.__pooling(stacked_outputs), dim=1),
-                    dim=1,
-                )
+                th.mean(th.stack(outputs, dim=1), dim=1)
             ),
             dim=-1,
         )
