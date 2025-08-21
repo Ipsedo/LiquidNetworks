@@ -9,7 +9,7 @@ from torch import nn
 from .liquid_cell import LiquidCell
 
 
-class AbstractLiquidRecurrent(ABC, nn.Module):
+class AbstractLiquidRecurrent[T](ABC, nn.Module):
     def __init__(
         self,
         neuron_number: int,
@@ -28,7 +28,7 @@ class AbstractLiquidRecurrent(ABC, nn.Module):
         pass
 
     @abstractmethod
-    def _process_input(self, i: th.Tensor) -> th.Tensor:
+    def _process_input(self, i: T) -> th.Tensor:
         pass
 
     @abstractmethod
@@ -39,18 +39,18 @@ class AbstractLiquidRecurrent(ABC, nn.Module):
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         pass
 
-    def forward(self, i: th.Tensor, delta_t: th.Tensor) -> th.Tensor:
-        x_t = self._get_first_x(i.size(0))
-        i = self._process_input(i)
+    def forward(self, i: T, delta_t: th.Tensor) -> th.Tensor:
+        i_encoded = self._process_input(i)
+        x_t = self._get_first_x(i_encoded.size(0))
 
         assert (
-            len(i.size()) == 3
+            len(i_encoded.size()) == 3
         ), "Processed input needs to have 3 dimensions (Batch, Time, Features)"
 
         results = []
 
-        for t in range(i.size(1)):
-            x_t = self.__cell(x_t, i[:, t, :], delta_t[:, t])
+        for t in range(i_encoded.size(1)):
+            x_t = self.__cell(x_t, i_encoded[:, t, :], delta_t[:, t])
             results.append(self._output_processing(x_t))
 
         return self._sequence_processing(results)

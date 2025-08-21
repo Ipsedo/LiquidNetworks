@@ -26,4 +26,5 @@ disable = [
     "missing-function-docstring",
     "too-many-arguments",
     "too-many-positional-arguments",
+    "too-few-public-methods",
 ]

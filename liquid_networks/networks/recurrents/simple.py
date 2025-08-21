@@ -6,7 +6,7 @@ from torch import nn
 from ..abstract_recurent import AbstractLiquidRecurrent
 
 
-class LiquidRecurrent(AbstractLiquidRecurrent):
+class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
     def __init__(
         self,
         neuron_number: int,
