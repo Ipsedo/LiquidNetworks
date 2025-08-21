@@ -68,8 +68,6 @@ class BfrbLiquidRecurrent(
             nn.LayerNorm(hidden_size),
         )
 
-        self.__pooling = nn.Linear(neuron_number, 1)
-
     def _get_first_x(self, batch_size: int) -> th.Tensor:
         # pylint: disable=duplicate-code
         return self.cell_activation_function(
@@ -112,12 +110,7 @@ class BfrbLiquidRecurrent(
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        stacked_outputs = th.stack(outputs, dim=1)
         out: th.Tensor = self.__to_output(
-            th.sum(
-                stacked_outputs
-                * th_f.softmax(self.__pooling(stacked_outputs), dim=1),
-                dim=1,
-            )
+            th.mean(th.stack(outputs, dim=1), dim=1)
         )
         return out
