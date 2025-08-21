@@ -151,7 +151,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                                 f"Eval {i} / {len(valid_dataset) // train_options.batch_size}"
                             )
 
-                            nb_valid_examples += f_v.size(0)
+                            nb_valid_examples += t_v.size(0)
 
                         valid_loss /= nb_valid_examples
                         valid_metric.add_result(valid_loss)
