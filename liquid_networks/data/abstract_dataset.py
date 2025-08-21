@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any, Callable
 
 import torch as th
 from torch.utils.data import Dataset
@@ -6,7 +7,7 @@ from torch.utils.data import Dataset
 from liquid_networks import networks
 
 
-class AbstractDataset(ABC, Dataset):
+class AbstractDataset[T](ABC, Dataset):
     def __init__(self, data_path: str) -> None:
         super().__init__()
 
@@ -17,9 +18,7 @@ class AbstractDataset(ABC, Dataset):
         pass
 
     @abstractmethod
-    def __getitem__(
-        self, index: int
-    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def __getitem__(self, index: int) -> tuple[T, th.Tensor, th.Tensor]:
         pass
 
     @property
@@ -32,3 +31,11 @@ class AbstractDataset(ABC, Dataset):
 
     def __repr__(self) -> str:
         return str(self)
+
+    @property
+    def collate_fn(self) -> Callable[[list], Any] | None:
+        return None
+
+    @abstractmethod
+    def to_device(self, data: T, device: th.device) -> T:
+        pass

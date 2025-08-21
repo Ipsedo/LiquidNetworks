@@ -66,11 +66,12 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 shuffle=True,
                 num_workers=12,
                 drop_last=True,
+                collate_fn=train_dataset.collate_fn,
             )
 
             for f, t, y in train_dataloader:
 
-                f = f.to(device=device)
+                f = train_dataset.to_device(f, device)
                 t = t.to(device=device)
                 y = y.to(device=device)
 
@@ -130,13 +131,14 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                             valid_dataset,
                             batch_size=train_options.batch_size,
                             num_workers=6,
+                            collate_fn=valid_dataset.collate_fn,
                         )
 
                         valid_loss = 0.0
                         nb_valid_examples = 0
 
                         for i, (f_v, t_v, y_v) in enumerate(valid_dataloader):
-                            f_v = f_v.to(device=device)
+                            f_v = valid_dataset.to_device(f_v, device)
                             t_v = t_v.to(device=device)
                             y_v = y_v.to(device=device)
 
@@ -146,7 +148,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
 
                             tqdm_bar.set_description(
                                 f"{tqdm_description}, "
-                                f"Eval {i + 1} / {len(valid_dataset) // train_options.batch_size}"
+                                f"Eval {i} / {len(valid_dataset) // train_options.batch_size}"
                             )
 
                             nb_valid_examples += f_v.size(0)

@@ -10,7 +10,7 @@ from liquid_networks import networks
 from ..abstract_dataset import AbstractDataset
 
 
-class HarmfulBrainActivityDataset(AbstractDataset):
+class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
     def __init__(self, data_path: str) -> None:
         super().__init__(data_path)
 
@@ -50,3 +50,6 @@ class HarmfulBrainActivityDataset(AbstractDataset):
     @property
     def task_type(self) -> networks.TaskType:
         return "brain_activity"
+
+    def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
+        return data.to(device)

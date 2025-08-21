@@ -33,7 +33,7 @@ def cross_entropy(
 ) -> th.Tensor:
     assert len(outputs.size()) == 2
     return _reduce(
-        th_f.cross_entropy(outputs, targets, reduction="none").sum(dim=1),
+        th_f.cross_entropy(outputs, targets, reduction="none"),
         reduction,
     )
 

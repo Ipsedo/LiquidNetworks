@@ -9,7 +9,7 @@ from ..abstract_dataset import AbstractDataset
 
 
 # https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
-class HouseholdPowerDataset(AbstractDataset):
+class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
     def __init__(self, csv_path: str) -> None:
         # pylint: disable=too-many-locals
         super().__init__(csv_path)
@@ -67,3 +67,6 @@ class HouseholdPowerDataset(AbstractDataset):
     @property
     def task_type(self) -> networks.TaskType:
         return "positive_regression"
+
+    def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
+        return data.to(device)

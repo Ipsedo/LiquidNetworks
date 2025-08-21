@@ -11,7 +11,7 @@ from ..abstract_dataset import AbstractDataset
 
 
 # MotionSense Dataset: Sensor Based Human Activity and Attribute Recognition
-class MotionSenseDataset(AbstractDataset):
+class MotionSenseDataset(AbstractDataset[th.Tensor]):
     def __init__(self, dataset_path: str, load_train: bool = True) -> None:
         # pylint: disable=too-many-locals
         super().__init__(dataset_path)
@@ -106,3 +106,6 @@ class MotionSenseDataset(AbstractDataset):
     @property
     def task_type(self) -> networks.TaskType:
         return "last_classification"
+
+    def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
+        return data.to(device)

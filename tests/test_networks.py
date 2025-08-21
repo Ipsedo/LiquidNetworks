@@ -5,6 +5,7 @@ import torch as th
 
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
 from liquid_networks.networks.recurrents import (
+    BfrbLiquidRecurrent,
     LastLiquidRecurrent,
     LastSoftmaxLiquidRecurrent,
     LiquidRecurrent,
@@ -107,6 +108,35 @@ def test_recurrent_single(
     delta_t = th.rand(batch_size, time_steps)
 
     out = r(input_t, delta_t)
+
+    assert len(out.size()) == 2
+    assert out.size(0) == batch_size
+    assert out.size(1) == output_size
+
+
+@pytest.mark.parametrize("batch_size", [2, 4])
+@pytest.mark.parametrize("neuron_number", [2, 4])
+@pytest.mark.parametrize("hidden_size", [2, 4])
+@pytest.mark.parametrize("unfolding_steps", [2, 4])
+@pytest.mark.parametrize("time_steps", [512, 256])
+@pytest.mark.parametrize("output_size", [2, 4])
+def test_recurrent_bfrb(
+    batch_size: int,
+    neuron_number: int,
+    hidden_size: int,
+    unfolding_steps: int,
+    time_steps: int,
+    output_size: int,
+) -> None:
+    r = BfrbLiquidRecurrent(
+        neuron_number, hidden_size, unfolding_steps, th.tanh, output_size
+    )
+
+    input_grids = th.randn(batch_size, time_steps, 5, 8, 8)
+    input_features = th.randn(batch_size, time_steps, 12)
+    delta_t = th.rand(batch_size, time_steps)
+
+    out = r((input_grids, input_features), delta_t)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
