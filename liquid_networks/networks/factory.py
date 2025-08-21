@@ -11,8 +11,8 @@ from .functions import (
     mse_loss_time_series,
 )
 from .recurrents import (
+    BrainActivityLiquidRecurrent,
     LastLiquidRecurrent,
-    LastSoftmaxLiquidRecurrent,
     LiquidRecurrent,
     SigmoidLiquidRecurrent,
     SoftplusLiquidRecurrent,
@@ -24,7 +24,7 @@ _MODEL_DICT: Final[dict[str, Type[LiquidRecurrent]]] = {
     "classification": LiquidRecurrent,
     "multi_labels": SigmoidLiquidRecurrent,
     "last_classification": LastLiquidRecurrent,
-    "brain_activity": LastSoftmaxLiquidRecurrent,
+    "brain_activity": BrainActivityLiquidRecurrent,
 }
 
 _LOSS_DICT: Final[dict[str, LossFunctionType]] = {
