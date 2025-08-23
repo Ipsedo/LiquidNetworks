@@ -9,10 +9,13 @@ LossFunctionType = Callable[[th.Tensor, th.Tensor, ReductionType], th.Tensor]
 
 
 def _reduce(out: th.Tensor, reduction: ReductionType) -> th.Tensor:
+    assert len(out.size()) == 1
+
     if reduction == "sum":
         return th.sum(out)
     if reduction == "batchmean":
-        return th.mean(out, dim=0)
+        return th.mean(out)
+
     raise ValueError(f"Unknown reduction {reduction}")
 
 
@@ -21,9 +24,7 @@ def cross_entropy_time_series(
 ) -> th.Tensor:
     assert len(outputs.size()) == 3
     return _reduce(
-        th_f.cross_entropy(outputs, targets, reduction="none")
-        .sum(dim=2)
-        .mean(dim=1),
+        th_f.cross_entropy(outputs, targets, reduction="none").mean(dim=1),
         reduction,
     )
 

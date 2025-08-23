@@ -39,6 +39,10 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         train_dataset = train_options.get_train_dataset()
         valid_dataset = train_options.get_valid_dataset()
 
+        print("train data count:", len(train_dataset))
+        if valid_dataset is not None:
+            print("eval data count:", len(valid_dataset))
+
         assert train_dataset.task_type == model_options.task_type
 
         ltc = model_options.get_model()
@@ -46,6 +50,8 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         loss_fn = model_options.get_loss_function()
 
         ltc.to(device=device)
+
+        print("Nb parameters:", ltc.count_parameters())
 
         loss_metric = Metric(train_options.metric_window_size)
         valid_metric = Metric(1)

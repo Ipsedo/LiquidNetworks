@@ -23,9 +23,16 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
             neuron_number, input_size, unfolding_steps, activation_function
         )
 
-    @abstractmethod
+        self.__neuron_number = neuron_number
+
     def _get_first_x(self, batch_size: int) -> th.Tensor:
-        pass
+        return self.__cell.activation_function(
+            th.zeros(
+                batch_size,
+                self.__neuron_number,
+                device=next(self.parameters()).device,
+            ),
+        )
 
     @abstractmethod
     def _process_input(self, i: T) -> th.Tensor:
@@ -68,6 +75,3 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
             for p in self.parameters()
             if p.grad is not None
         )
-
-    def cell_activation_function(self, x: th.Tensor) -> th.Tensor:
-        return self.__cell.activation_function(x)

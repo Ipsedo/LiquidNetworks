@@ -19,17 +19,7 @@ class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
             neuron_number, input_size, unfolding_steps, activation_function
         )
 
-        self.__neuron_number = neuron_number
         self.__to_output = nn.Linear(neuron_number, output_size)
-
-    def _get_first_x(self, batch_size: int) -> th.Tensor:
-        return self.cell_activation_function(
-            th.zeros(
-                batch_size,
-                self.__neuron_number,
-                device=next(self.parameters()).device,
-            ),
-        )
 
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         return i
