@@ -83,13 +83,9 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        return (
-            th_f.log_softmax(
-                super()._output_processing(th.stack(outputs, dim=1)), dim=-1
-            )
-            .sum(dim=1)
-            .exp()
-        )
+        return th_f.log_softmax(
+            super()._output_processing(th.stack(outputs, dim=1)), dim=-1
+        ).sum(dim=1)
 
 
 class BrainActivityLiquidRecurrentFactory(

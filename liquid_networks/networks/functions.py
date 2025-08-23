@@ -73,7 +73,7 @@ def kl_div(
 ) -> th.Tensor:
     assert len(outputs.size()) == 2
     return _reduce(
-        th_f.kl_div(outputs.log(), targets, reduction="none").sum(dim=1),
+        th_f.kl_div(outputs, targets, reduction="none").sum(dim=1),
         reduction,
     )
 
