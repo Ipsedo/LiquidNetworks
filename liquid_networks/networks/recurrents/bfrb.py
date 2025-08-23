@@ -62,13 +62,11 @@ class BfrbLiquidRecurrent(
         encoded_grids = th.cat(
             [
                 th.unflatten(
-                    self.__grid_encoders[i](
-                        grids[:, :, i].flatten(0, 1).unsqueeze(1)
-                    ).flatten(1, -1),
+                    enc(grids[:, :, i, None].flatten(0, 1)).flatten(1, -1),
                     0,
                     (b, t),
                 )
-                for i in range(self.nb_grids)
+                for i, enc in enumerate(self.__grid_encoders)
             ],
             dim=-1,
         )
