@@ -4,6 +4,7 @@ import torch as th
 from torch import nn
 
 from ..abstract_recurent import AbstractLiquidRecurrent
+from ..factory import AbstractLiquidRecurrentFactory
 
 
 class BfrbLiquidRecurrent(
@@ -12,10 +13,8 @@ class BfrbLiquidRecurrent(
     def __init__(
         self,
         neuron_number: int,
-        _: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
-        output_size: int,
     ) -> None:
         channels = [
             (1, 8),
@@ -24,6 +23,7 @@ class BfrbLiquidRecurrent(
         ]
 
         nb_features = 12
+        output_size = 18
 
         self.__nb_grids = 5
 
@@ -84,3 +84,15 @@ class BfrbLiquidRecurrent(
             th.mean(th.stack(outputs, dim=1), dim=1)
         )
         return out
+
+
+class BfrbLiquidRecurrentFactory(
+    AbstractLiquidRecurrentFactory[tuple[th.Tensor, th.Tensor]]
+):
+    def get_recurrent(
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+    ) -> AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]:
+        return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn)

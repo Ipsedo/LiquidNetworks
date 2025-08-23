@@ -105,7 +105,7 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
 
     @property
     def task_type(self) -> networks.TaskType:
-        return "last_classification"
+        return networks.TaskType.LAST_CLASSIFICATION
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)

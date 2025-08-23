@@ -1,83 +1,33 @@
-from typing import Callable, Final, Literal
+from abc import ABC, abstractmethod
+from typing import Callable, TypeVar
 
 import torch as th
-from torch.nn import functional as th_f
 
 from .abstract_recurent import AbstractLiquidRecurrent
-from .functions import (
-    LossFunctionType,
-    cross_entropy,
-    cross_entropy_time_series,
-    kl_div,
-    mse_loss_time_series,
-)
-from .recurrents import (
-    BfrbLiquidRecurrent,
-    BrainActivityLiquidRecurrent,
-    LastLiquidRecurrent,
-    LiquidRecurrent,
-    SigmoidLiquidRecurrent,
-    SoftplusLiquidRecurrent,
-)
-
-LtcConstructorType = Callable[
-    [int, int, int, Callable[[th.Tensor], th.Tensor], int],
-    AbstractLiquidRecurrent,
-]
-
-_MODEL_DICT: Final[dict[str, LtcConstructorType]] = {
-    "regression": LiquidRecurrent,
-    "positive_regression": SoftplusLiquidRecurrent,
-    "classification": LiquidRecurrent,
-    "multi_labels": SigmoidLiquidRecurrent,
-    "last_classification": LastLiquidRecurrent,
-    "brain_activity": BrainActivityLiquidRecurrent,
-    "bfrb": BfrbLiquidRecurrent,
-}
-
-_LOSS_DICT: Final[dict[str, LossFunctionType]] = {
-    "regression": mse_loss_time_series,
-    "positive_regression": mse_loss_time_series,
-    "classification": cross_entropy_time_series,
-    "multi_labels": mse_loss_time_series,
-    "last_classification": cross_entropy,
-    "brain_activity": kl_div,
-    "bfrb": cross_entropy,
-}
-
-_ACT_FN_DICT: Final[dict[str, Callable[[th.Tensor], th.Tensor]]] = {
-    "mish": th_f.mish,
-    "relu": th_f.relu,
-    "sigmoid": th_f.sigmoid,
-    "tanh": th_f.tanh,
-    "leaky_relu": th_f.leaky_relu,
-    "gelu": th_f.gelu,
-}
-
-TaskType = Literal[
-    "regression",
-    "positive_regression",
-    "classification",
-    "multi_labels",
-    "last_classification",
-    "brain_activity",
-    "bfrb",
-]
-
-ActivationFunction = Literal[
-    "mish", "tanh", "sigmoid", "relu", "gelu", "leaky_relu"
-]
 
 
-def get_model_constructor(task_type: TaskType) -> LtcConstructorType:
-    return _MODEL_DICT[task_type]
+class MissingConfigException(Exception):
+    def __init__(self, key: str) -> None:
+        super().__init__(f"Missing config for '{key}'")
 
 
-def get_loss_function(task_type: TaskType) -> LossFunctionType:
-    return _LOSS_DICT[task_type]
+U = TypeVar("U")
 
 
-def get_activation_fn(
-    act_fn: ActivationFunction,
-) -> Callable[[th.Tensor], th.Tensor]:
-    return _ACT_FN_DICT[act_fn]
+class AbstractLiquidRecurrentFactory[T](ABC):
+    def __init__(self, config: dict[str, str]) -> None:
+        self.__config = config
+
+    def _get_config(self, key: str, convert_fn: Callable[[str], U]) -> U:
+        if key not in self.__config:
+            raise MissingConfigException(key)
+        return convert_fn(self.__config[key])
+
+    @abstractmethod
+    def get_recurrent(
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+    ) -> AbstractLiquidRecurrent[T]:
+        pass

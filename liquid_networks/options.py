@@ -7,30 +7,29 @@ from .data import AbstractDataset, DatasetNames, get_dataset_constructor
 from .networks import (
     AbstractLiquidRecurrent,
     ActivationFunction,
-    ReductionType,
     TaskType,
     get_activation_fn,
     get_loss_function,
     get_model_constructor,
 )
+from .networks.functions import ReductionType
 
 
 class ModelOptions(NamedTuple):
     neuron_number: int
-    input_size: int
     unfolding_steps: int
-    output_size: int
-    task_type: TaskType
     activation_function: ActivationFunction
+    task_type: TaskType
+    specific_parameters: dict[str, str]
     cuda: bool
 
     def get_model(self) -> AbstractLiquidRecurrent:
         return get_model_constructor(self.task_type)(
+            self.specific_parameters
+        ).get_recurrent(
             self.neuron_number,
-            self.input_size,
             self.unfolding_steps,
             get_activation_fn(self.activation_function),
-            self.output_size,
         )
 
     def get_loss_function(

@@ -1,10 +1,11 @@
-import math
 from typing import Callable
 
 import torch as th
 from torch import nn
 from torch.nn import functional as th_f
 
+from ..abstract_recurent import AbstractLiquidRecurrent
+from ..factory import AbstractLiquidRecurrentFactory
 from .simple import LiquidRecurrent
 
 
@@ -50,15 +51,15 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         input_size: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
-        output_size: int,
+        nb_layers: int,
+        factor: float,
     ) -> None:
-        nb_layers = 4
-        factor = math.sqrt(2.0)
-
         channels = [
             (int(input_size * factor**i), int(input_size * factor ** (i + 1)))
             for i in range(nb_layers)
         ]
+
+        output_size = 6
 
         super().__init__(
             neuron_number,
@@ -87,4 +88,23 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
                 th.mean(th.stack(outputs, dim=1), dim=1)
             ),
             dim=-1,
+        )
+
+
+class BrainActivityLiquidRecurrentFactory(
+    AbstractLiquidRecurrentFactory[th.Tensor]
+):
+    def get_recurrent(
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+    ) -> AbstractLiquidRecurrent[th.Tensor]:
+        return BrainActivityLiquidRecurrent(
+            neuron_number,
+            self._get_config("input_size", int),
+            unfolding_steps,
+            act_fn,
+            self._get_config("nb_layers", int),
+            self._get_config("factor", float),
         )

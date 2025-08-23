@@ -4,6 +4,7 @@ import torch as th
 from torch import nn
 
 from ..abstract_recurent import AbstractLiquidRecurrent
+from ..factory import AbstractLiquidRecurrentFactory
 
 
 class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
@@ -30,3 +31,32 @@ class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         return th.stack(outputs, 1)
+
+
+class BaseLiquidRecurrentFactory[LtcConstructor: LiquidRecurrent](
+    AbstractLiquidRecurrentFactory[th.Tensor]
+):
+    def __init__(
+        self, config: dict[str, str], ltc_constructor: type[LtcConstructor]
+    ) -> None:
+        super().__init__(config)
+        self.__ltc_constructor = ltc_constructor
+
+    def get_recurrent(
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+    ) -> AbstractLiquidRecurrent[th.Tensor]:
+        return self.__ltc_constructor(
+            neuron_number,
+            self._get_config("input_size", int),
+            unfolding_steps,
+            act_fn,
+            self._get_config("output_size", int),
+        )
+
+
+class LiquidRecurrentFactory(BaseLiquidRecurrentFactory[LiquidRecurrent]):
+    def __init__(self, config: dict[str, str]) -> None:
+        super().__init__(config, LiquidRecurrent)

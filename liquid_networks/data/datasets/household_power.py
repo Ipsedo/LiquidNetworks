@@ -66,7 +66,7 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
 
     @property
     def task_type(self) -> networks.TaskType:
-        return "positive_regression"
+        return networks.TaskType.POSITIVE_REGRESSION
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)

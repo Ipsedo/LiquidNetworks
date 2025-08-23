@@ -1,16 +1,13 @@
 import pytest
 import torch as th
 
-from liquid_networks.networks.factory import LtcConstructorType
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
-from liquid_networks.networks.recurrents import (
-    BfrbLiquidRecurrent,
+from liquid_networks.networks.recurrents.bfrb import BfrbLiquidRecurrent
+from liquid_networks.networks.recurrents.brain_activity import (
     BrainActivityLiquidRecurrent,
-    LastLiquidRecurrent,
-    LastSoftmaxLiquidRecurrent,
-    LiquidRecurrent,
-    SigmoidLiquidRecurrent,
 )
+from liquid_networks.networks.recurrents.simple import LiquidRecurrent
+from liquid_networks.networks.recurrents.variants import LastLiquidRecurrent
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
@@ -55,9 +52,6 @@ def test_cell(
 @pytest.mark.parametrize("unfolding_steps", [2, 4])
 @pytest.mark.parametrize("time_steps", [2, 4])
 @pytest.mark.parametrize("output_size", [2, 4])
-@pytest.mark.parametrize(
-    "ltc_constructor", [SigmoidLiquidRecurrent, LiquidRecurrent]
-)
 def test_recurrent(
     batch_size: int,
     neuron_number: int,
@@ -65,9 +59,8 @@ def test_recurrent(
     unfolding_steps: int,
     time_steps: int,
     output_size: int,
-    ltc_constructor: LtcConstructorType,
 ) -> None:
-    r = ltc_constructor(
+    r = LiquidRecurrent(
         neuron_number, input_size, unfolding_steps, th.tanh, output_size
     )
 
@@ -88,14 +81,6 @@ def test_recurrent(
 @pytest.mark.parametrize("unfolding_steps", [2, 4])
 @pytest.mark.parametrize("time_steps", [512, 256])
 @pytest.mark.parametrize("output_size", [2, 4])
-@pytest.mark.parametrize(
-    "ltc_constructor",
-    [
-        LastSoftmaxLiquidRecurrent,
-        LastLiquidRecurrent,
-        BrainActivityLiquidRecurrent,
-    ],
-)
 def test_recurrent_single(
     batch_size: int,
     neuron_number: int,
@@ -103,9 +88,8 @@ def test_recurrent_single(
     unfolding_steps: int,
     time_steps: int,
     output_size: int,
-    ltc_constructor: LtcConstructorType,
 ) -> None:
-    r = ltc_constructor(
+    r = LastLiquidRecurrent(
         neuron_number, input_size, unfolding_steps, th.tanh, output_size
     )
 
@@ -121,21 +105,45 @@ def test_recurrent_single(
 
 @pytest.mark.parametrize("batch_size", [2, 4])
 @pytest.mark.parametrize("neuron_number", [2, 4])
-@pytest.mark.parametrize("hidden_size", [2, 4])
+@pytest.mark.parametrize("input_size", [2, 4])
 @pytest.mark.parametrize("unfolding_steps", [2, 4])
 @pytest.mark.parametrize("time_steps", [512, 256])
-@pytest.mark.parametrize("output_size", [2, 4])
+@pytest.mark.parametrize("nb_layer", [2, 4])
+@pytest.mark.parametrize("factor", [1.0, 1.5])
+def test_recurrent_brain_activity(
+    batch_size: int,
+    neuron_number: int,
+    input_size: int,
+    unfolding_steps: int,
+    time_steps: int,
+    nb_layer: int,
+    factor: float,
+) -> None:
+    r = BrainActivityLiquidRecurrent(
+        neuron_number, input_size, unfolding_steps, th.tanh, nb_layer, factor
+    )
+
+    input_t = th.randn(batch_size, time_steps, input_size)
+    delta_t = th.rand(batch_size, time_steps)
+
+    out = r(input_t, delta_t)
+
+    assert len(out.size()) == 2
+    assert out.size(0) == batch_size
+    assert out.size(1) == 6
+
+
+@pytest.mark.parametrize("batch_size", [2, 4])
+@pytest.mark.parametrize("neuron_number", [2, 4])
+@pytest.mark.parametrize("unfolding_steps", [2, 4])
+@pytest.mark.parametrize("time_steps", [512, 256])
 def test_recurrent_bfrb(
     batch_size: int,
     neuron_number: int,
-    hidden_size: int,
     unfolding_steps: int,
     time_steps: int,
-    output_size: int,
 ) -> None:
-    r = BfrbLiquidRecurrent(
-        neuron_number, hidden_size, unfolding_steps, th.tanh, output_size
-    )
+    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh)
 
     input_grids = th.randn(batch_size, time_steps, 5, 8, 8)
     input_features = th.randn(batch_size, time_steps, 12)
@@ -145,4 +153,4 @@ def test_recurrent_bfrb(
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
-    assert out.size(1) == output_size
+    assert out.size(1) == 18

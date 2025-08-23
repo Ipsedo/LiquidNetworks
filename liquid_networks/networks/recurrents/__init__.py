@@ -1,10 +1,21 @@
-from .bfrb import BfrbLiquidRecurrent
-from .brain_activity import BrainActivityLiquidRecurrent
-from .simple import LiquidRecurrent
+from .bfrb import BfrbLiquidRecurrentFactory
+from .brain_activity import BrainActivityLiquidRecurrentFactory
+from .simple import LiquidRecurrentFactory
 from .variants import (
-    LastLiquidRecurrent,
-    LastSoftmaxLiquidRecurrent,
-    SigmoidLiquidRecurrent,
-    SoftmaxLiquidRecurrent,
-    SoftplusLiquidRecurrent,
+    LastLiquidRecurrentFactory,
+    LastSoftmaxLiquidRecurrentFactory,
+    SigmoidLiquidRecurrentFactory,
+    SoftmaxLiquidRecurrentFactory,
+    SoftplusLiquidRecurrentFactory,
 )
+
+__all__ = [
+    "BfrbLiquidRecurrentFactory",
+    "BrainActivityLiquidRecurrentFactory",
+    "LiquidRecurrentFactory",
+    "LastLiquidRecurrentFactory",
+    "LastSoftmaxLiquidRecurrentFactory",
+    "SigmoidLiquidRecurrentFactory",
+    "SoftmaxLiquidRecurrentFactory",
+    "SoftplusLiquidRecurrentFactory",
+]

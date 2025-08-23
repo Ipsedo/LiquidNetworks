@@ -62,7 +62,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
     @property
     def task_type(self) -> networks.TaskType:
-        return "bfrb"
+        return networks.TaskType.BFRB
 
     @property
     def collate_fn(self) -> Callable[[list], Any] | None:

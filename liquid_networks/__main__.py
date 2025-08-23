@@ -1,4 +1,5 @@
 import argparse
+import re
 from typing import get_args
 
 from .data import DatasetNames
@@ -7,21 +8,40 @@ from .options import ModelOptions, TrainOptions
 from .train import train
 
 
+def _parse_specific_parameters(arg: str) -> tuple[str, str]:
+    regex_key_value = re.compile(r"^ *([^= ]+)=([^= ]+) *$")
+
+    match = regex_key_value.match(arg)
+
+    if match:
+        key = match.group(1)
+        value = match.group(2)
+        return key, value
+    raise argparse.ArgumentTypeError(
+        f"invalid option: {arg}. Expected key-value pair, "
+        "example: key_1=value_1"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser("liquid_networks main")
 
     parser.add_argument("--neuron-number", type=int, default=32)
     parser.add_argument("--unfolding-steps", type=int, default=6)
-    parser.add_argument("--input-size", type=int, required=True)
-    parser.add_argument("--output-size", type=int, required=True)
     parser.add_argument(
-        "--task-type", type=str, required=True, choices=get_args(TaskType)
+        "--task-type", type=str, required=True, choices=list(TaskType)
     )
     parser.add_argument(
         "--activation-function",
         type=str,
         required=True,
-        choices=get_args(ActivationFunction),
+        choices=list(ActivationFunction),
+    )
+    parser.add_argument(
+        "-sp",
+        "--specific-parameters",
+        type=_parse_specific_parameters,
+        action="append",
     )
     parser.add_argument("--cuda", action="store_true")
 
@@ -50,11 +70,10 @@ def main() -> None:
 
     model_options = ModelOptions(
         args.neuron_number,
-        args.input_size,
         args.unfolding_steps,
-        args.output_size,
-        args.task_type,
         args.activation_function,
+        args.task_type,
+        dict(args.specific_parameters),
         args.cuda,
     )
 
