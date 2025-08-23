@@ -11,7 +11,9 @@ from .metrics import Metric
 from .options import ModelOptions, TrainOptions
 
 
-def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
+def train_main(
+    model_options: ModelOptions, train_options: TrainOptions
+) -> None:
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
 
@@ -20,18 +22,14 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
     elif not isdir(train_options.output_folder):
         raise NotADirectoryError(train_options.output_folder)
 
-    if model_options.cuda:
-        device = th.device("cuda")
-        th.backends.cudnn.benchmark = True
-    else:
-        device = th.device("cpu")
+    device = model_options.get_device()
 
     with mlflow.start_run(run_name=train_options.run_name):
 
         mlflow.log_params(
             {
-                **model_options.to_dict(),
-                **train_options.to_dict(),
+                **dict(model_options),
+                **dict(train_options),
             }
         )
 

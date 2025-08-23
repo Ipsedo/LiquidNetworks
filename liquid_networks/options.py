@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Callable
 
 import torch as th
+from pydantic import BaseModel
 
 from .data import AbstractDataset, DatasetNames, get_dataset_constructor
 from .networks import (
@@ -15,7 +16,7 @@ from .networks import (
 from .networks.functions import ReductionType
 
 
-class ModelOptions(NamedTuple):
+class ModelOptions(BaseModel):
     neuron_number: int
     unfolding_steps: int
     activation_function: ActivationFunction
@@ -37,11 +38,15 @@ class ModelOptions(NamedTuple):
     ) -> Callable[[th.Tensor, th.Tensor, ReductionType], th.Tensor]:
         return get_loss_function(self.task_type)
 
-    def to_dict(self) -> dict[str, Any]:
-        return dict(self._asdict())  # pylint: disable=no-member
+    def get_device(self) -> th.device:
+        if self.cuda:
+            th.backends.cudnn.benchmark = True
+            return th.device("cuda")
+
+        return th.device("cpu")
 
 
-class TrainOptions(NamedTuple):
+class TrainOptions(BaseModel):
     epoch: int
     batch_size: int
     learning_rate: float
@@ -49,18 +54,31 @@ class TrainOptions(NamedTuple):
     run_name: str
     metric_window_size: int
     dataset_name: DatasetNames
-    train_data_path: str
-    valid_data_path: str | None
+    train_dataset_path: str
+    valid_dataset_path: str | None
     save_every: int
     eval_every: int
 
-    def to_dict(self) -> dict[str, Any]:
-        return dict(self._asdict())  # pylint: disable=no-member
-
     def get_train_dataset(self) -> AbstractDataset:
-        return get_dataset_constructor(self.dataset_name)(self.train_data_path)
+        return get_dataset_constructor(self.dataset_name)(
+            self.train_dataset_path
+        )
 
     def get_valid_dataset(self) -> AbstractDataset | None:
-        if self.valid_data_path is None:
+        if self.valid_dataset_path is None:
             return None
-        return get_dataset_constructor(self.dataset_name)(self.valid_data_path)
+        return get_dataset_constructor(self.dataset_name)(
+            self.valid_dataset_path
+        )
+
+
+class EvalOptions(BaseModel):
+    model_path: str
+    output_folder: str
+    run_name: str
+    dataset_name: DatasetNames
+    dataset_path: str
+    batch_size: int
+
+    def get_dataset(self) -> AbstractDataset:
+        return get_dataset_constructor(self.dataset_name)(self.dataset_path)

@@ -1,4 +1,5 @@
-from typing import Final, Literal, Type
+from enum import StrEnum
+from typing import Final, Type
 
 from .abstract_dataset import AbstractDataset
 from .datasets import (
@@ -8,15 +9,19 @@ from .datasets import (
     MotionSenseDataset,
 )
 
-DatasetNames = Literal[
-    "household_power", "motion_sense", "brain_activity", "bfrb"
-]
 
-_DATASET_DICT: Final[dict[str, Type[AbstractDataset]]] = {
-    "household_power": HouseholdPowerDataset,
-    "motion_sense": MotionSenseDataset,
-    "brain_activity": HarmfulBrainActivityDataset,
-    "bfrb": BfrbDataset,
+class DatasetNames(StrEnum):
+    HOUSEHOLD_POWER = "household_power"
+    MOTION_SENSE = "motion_sense"
+    BRAIN_ACTIVITY = "brain_activity"
+    BFRB = "bfrb"
+
+
+_DATASET_DICT: Final[dict[DatasetNames, Type[AbstractDataset]]] = {
+    DatasetNames.HOUSEHOLD_POWER: HouseholdPowerDataset,
+    DatasetNames.MOTION_SENSE: MotionSenseDataset,
+    DatasetNames.BRAIN_ACTIVITY: HarmfulBrainActivityDataset,
+    DatasetNames.BFRB: BfrbDataset,
 }
 
 

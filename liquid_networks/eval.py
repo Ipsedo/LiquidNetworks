@@ -1,11 +1,16 @@
+from os import makedirs
+from os.path import exists, isdir
 from typing import Callable
 
+import mlflow
 import torch as th
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from .data import AbstractDataset
 from .networks import AbstractLiquidRecurrent
 from .networks.functions import LossFunctionType
+from .options import EvalOptions, ModelOptions
 
 
 def eval_model_on_dataset[T](
@@ -45,3 +50,52 @@ def eval_model_on_dataset[T](
         ltc.train()
 
         return valid_loss / nb_valid_examples
+
+
+def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
+    if not exists(eval_options.output_folder):
+        makedirs(eval_options.output_folder)
+    elif not isdir(eval_options.output_folder):
+        raise NotADirectoryError(eval_options.output_folder)
+
+    device = model_options.get_device()
+
+    with mlflow.start_run(run_name=eval_options.run_name):
+
+        mlflow.log_params(
+            {
+                **dict(model_options),
+                **dict(eval_options),
+            }
+        )
+
+        print(f"Will load '{eval_options.dataset_name}' dataset.")
+
+        dataset = eval_options.get_dataset()
+
+        print("train data count:", len(dataset))
+
+        assert dataset.task_type == model_options.task_type
+
+        ltc = model_options.get_model()
+        loss_fn = model_options.get_loss_function()
+
+        ltc.to(device=device)
+        ltc.load_state_dict(
+            th.load(eval_options.model_path, map_location=device)
+        )
+
+        print("Nb parameters:", ltc.count_parameters())
+
+        tqdm_bar = tqdm(total=len(dataset))
+        tqdm_bar.set_description("Evaluate")
+
+        def _callback(_: int, __: int) -> None:
+            tqdm_bar.update(eval_options.batch_size)
+
+        eval_loss = eval_model_on_dataset(
+            ltc, dataset, eval_options.batch_size, device, loss_fn, _callback
+        )
+
+        tqdm_bar.write(f"Eval loss = {eval_loss}")
+        mlflow.log_metric("eval_loss", eval_loss)
