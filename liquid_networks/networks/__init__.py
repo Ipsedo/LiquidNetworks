@@ -4,8 +4,7 @@ from typing import Callable, Final
 import torch as th
 from torch.nn import functional as th_f
 
-from .abstract_recurent import AbstractLiquidRecurrent
-from .factory import AbstractLiquidRecurrentFactory
+from .abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
 from .functions import (
     LossFunctionType,
     cross_entropy,

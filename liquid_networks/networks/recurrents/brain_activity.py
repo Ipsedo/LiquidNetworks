@@ -4,8 +4,7 @@ import torch as th
 from torch import nn
 from torch.nn import functional as th_f
 
-from ..abstract_recurent import AbstractLiquidRecurrent
-from ..factory import AbstractLiquidRecurrentFactory
+from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
 from .simple import LiquidRecurrent
 
 

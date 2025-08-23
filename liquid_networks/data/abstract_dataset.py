@@ -5,6 +5,7 @@ import torch as th
 from torch.utils.data import Dataset
 
 from liquid_networks import networks
+from liquid_networks.factory import BaseFactory
 
 
 class AbstractDataset[T](ABC, Dataset):
@@ -43,4 +44,10 @@ class AbstractDataset[T](ABC, Dataset):
 
     @abstractmethod
     def to_device(self, data: T, device: th.device) -> T:
+        pass
+
+
+class AbstractDatasetFactory[T](BaseFactory, ABC):
+    @abstractmethod
+    def get_dataset(self, data_path: str) -> AbstractDataset[T]:
         pass

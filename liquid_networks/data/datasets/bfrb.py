@@ -8,7 +8,7 @@ from torch.nn import functional as th_f
 
 from liquid_networks import networks
 
-from ..abstract_dataset import AbstractDataset
+from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
 
 
 class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
@@ -85,3 +85,8 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     @property
     def delta_t(self) -> float:
         return 1.0
+
+
+class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):
+    def get_dataset(self, data_path: str) -> AbstractDataset[tuple[th.Tensor, th.Tensor]]:
+        return BfrbDataset(data_path)

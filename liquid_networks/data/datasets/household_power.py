@@ -1,26 +1,21 @@
-from datetime import datetime
-
 import pandas as pd
 import torch as th
 
 from liquid_networks import networks
 
-from ..abstract_dataset import AbstractDataset
+from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
 
 
 # https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
 class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
-    def __init__(self, csv_path: str) -> None:
+    def __init__(self, csv_path: str, sequence_length: int) -> None:
         # pylint: disable=too-many-locals
         super().__init__(csv_path)
 
-        self.__seq_length = 256
+        self.__seq_length = sequence_length
 
         self.__df = pd.read_csv(csv_path, sep=";", header=0, low_memory=False)
         self.__df = self.__df.iloc[len(self.__df) % self.__seq_length :, :]
-        self.__df["date"] = self.__df.apply(
-            lambda r: datetime.strptime(f"{r['Date']} {r['Time']}", "%d/%m/%Y %H:%M:%S"), axis=1
-        )
         self.__df = self.__df.drop(columns=["Date", "Time"])
 
         self.__target_variable = "Global_active_power"
@@ -68,3 +63,8 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
     @property
     def delta_t(self) -> float:
         return 1.0
+
+
+class HouseholdPowerDatasetFactory(AbstractDatasetFactory[th.Tensor]):
+    def get_dataset(self, data_path: str) -> AbstractDataset[th.Tensor]:
+        return HouseholdPowerDataset(data_path, self._get_config("sequence_length", int, 256))

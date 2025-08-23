@@ -50,18 +50,23 @@ class TrainOptions(BaseModel):
     run_name: str
     metric_window_size: int
     dataset_name: DatasetNames
+    dataset_parameters: dict[str, str]
     train_dataset_path: str
     valid_dataset_path: str | None
     save_every: int
     eval_every: int
 
     def get_train_dataset(self) -> AbstractDataset:
-        return get_dataset_constructor(self.dataset_name)(self.train_dataset_path)
+        return get_dataset_constructor(self.dataset_name)(self.dataset_parameters).get_dataset(
+            self.train_dataset_path
+        )
 
     def get_valid_dataset(self) -> AbstractDataset | None:
         if self.valid_dataset_path is None:
             return None
-        return get_dataset_constructor(self.dataset_name)(self.valid_dataset_path)
+        return get_dataset_constructor(self.dataset_name)(self.dataset_parameters).get_dataset(
+            self.valid_dataset_path
+        )
 
 
 class EvalOptions(BaseModel):
@@ -69,8 +74,11 @@ class EvalOptions(BaseModel):
     output_folder: str
     run_name: str
     dataset_name: DatasetNames
+    dataset_parameters: dict[str, str]
     dataset_path: str
     batch_size: int
 
     def get_dataset(self) -> AbstractDataset:
-        return get_dataset_constructor(self.dataset_name)(self.dataset_path)
+        return get_dataset_constructor(self.dataset_name)(self.dataset_parameters).get_dataset(
+            self.dataset_path
+        )

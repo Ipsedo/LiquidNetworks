@@ -7,18 +7,18 @@ import torch as th
 
 from liquid_networks import networks
 
-from ..abstract_dataset import AbstractDataset
+from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
 
 
 # MotionSense Dataset: Sensor Based Human Activity and Attribute Recognition
 class MotionSenseDataset(AbstractDataset[th.Tensor]):
-    def __init__(self, dataset_path: str, load_train: bool = True) -> None:
+    def __init__(self, dataset_path: str, load_train: bool, sequence_length: int) -> None:
         # pylint: disable=too-many-locals
         super().__init__(dataset_path)
 
         train_trials = list(range(1, 10))
 
-        self.__seq_length = 32
+        self.__seq_length = sequence_length
 
         regex_activity = re.compile(r"^(\w+)_(\d+)$")
         regex_subject = re.compile(r"^sub_(\d+)\.csv$")
@@ -101,3 +101,12 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
     @property
     def delta_t(self) -> float:
         return 1.0
+
+
+class MotionSenseDatasetFactory(AbstractDatasetFactory[th.Tensor]):
+    def get_dataset(self, data_path: str) -> AbstractDataset[th.Tensor]:
+        return MotionSenseDataset(
+            data_path,
+            self._get_config("load_train", bool, True),
+            self._get_config("sequence_length", int, 32),
+        )

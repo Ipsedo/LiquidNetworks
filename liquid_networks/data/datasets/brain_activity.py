@@ -7,11 +7,11 @@ from tqdm import tqdm
 
 from liquid_networks import networks
 
-from ..abstract_dataset import AbstractDataset
+from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
 
 
 class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
-    def __init__(self, data_path: str) -> None:
+    def __init__(self, data_path: str, normalize: bool) -> None:
         super().__init__(data_path)
 
         assert isdir(data_path)
@@ -24,18 +24,20 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
             if isfile(join(data_path, f)) and re_file.match(f)
         ]
 
+        self.__normalize = normalize
+
     def __len__(self) -> int:
         return len(self.__index_list)
 
     def __getitem__(self, index: int) -> tuple[th.Tensor, th.Tensor]:
         file_index = self.__index_list[index]
 
-        # maybe broken, need update notebook
-        # new shape: (Batch, Time, Features)
         features = th.abs(th.load(join(self._data_path, f"{file_index}_eeg.pt")))
-        features = (features - th.mean(features, dim=1, keepdim=True)) / (
-            th.std(features, dim=1, keepdim=True) + 1e-8
-        )
+
+        if self.__normalize:
+            features = (features - th.mean(features, dim=1, keepdim=True)) / (
+                th.std(features, dim=1, keepdim=True) + 1e-8
+            )
 
         return (
             features,
@@ -52,3 +54,8 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
     @property
     def delta_t(self) -> float:
         return 1.0
+
+
+class HarmfulBrainActivityDatasetFactory(AbstractDatasetFactory[th.Tensor]):
+    def get_dataset(self, data_path: str) -> AbstractDataset[th.Tensor]:
+        return HarmfulBrainActivityDataset(data_path, self._get_config("normalize", bool, False))

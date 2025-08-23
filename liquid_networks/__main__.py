@@ -49,6 +49,9 @@ def main() -> None:
     train_parser.add_argument("--learning-rate", type=float, default=1e-3)
     train_parser.add_argument("--metric-window-size", type=int, default=64)
     train_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
+    train_parser.add_argument(
+        "-dp", "--dataset-parameters", type=_parse_specific_parameters, action="append", default=[]
+    )
     train_parser.add_argument("--train-dataset-path", type=str, required=True)
     train_parser.add_argument("--valid-dataset-path", type=str)
     train_parser.add_argument("--save-every", type=int, default=1024)
@@ -61,6 +64,9 @@ def main() -> None:
     eval_parser.add_argument("output_folder", type=str)
     eval_parser.add_argument("--model-path", type=str, required=True)
     eval_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
+    eval_parser.add_argument(
+        "-dp", "--dataset-parameters", type=_parse_specific_parameters, action="append", default=[]
+    )
     eval_parser.add_argument("--dataset-path", type=str, required=True)
     eval_parser.add_argument("--batch-size", type=int, default=256)
 
@@ -85,6 +91,7 @@ def main() -> None:
             run_name=args.run_name,
             metric_window_size=args.metric_window_size,
             dataset_name=args.dataset,
+            dataset_parameters=dict(args.dataset_parameters),
             train_dataset_path=args.train_dataset_path,
             valid_dataset_path=args.valid_dataset_path,
             save_every=args.save_every,
@@ -99,6 +106,7 @@ def main() -> None:
             output_folder=args.output_folder,
             run_name=args.run_name,
             dataset_name=args.dataset,
+            dataset_parameters=dict(args.dataset_parameters),
             dataset_path=args.dataset_path,
             batch_size=args.batch_size,
         )

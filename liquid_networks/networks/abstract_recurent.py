@@ -6,6 +6,8 @@ import numpy as np
 import torch as th
 from torch import nn
 
+from liquid_networks.factory import BaseFactory
+
 from .liquid_cell import LiquidCell
 
 
@@ -65,3 +67,11 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
 
     def grad_norm(self) -> float:
         return mean(float(p.grad.norm().item()) for p in self.parameters() if p.grad is not None)
+
+
+class AbstractLiquidRecurrentFactory[T](BaseFactory, ABC):
+    @abstractmethod
+    def get_recurrent(
+        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+    ) -> AbstractLiquidRecurrent[T]:
+        pass

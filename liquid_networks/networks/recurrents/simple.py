@@ -3,8 +3,7 @@ from typing import Callable
 import torch as th
 from torch import nn
 
-from ..abstract_recurent import AbstractLiquidRecurrent
-from ..factory import AbstractLiquidRecurrentFactory
+from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
 
 
 class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
