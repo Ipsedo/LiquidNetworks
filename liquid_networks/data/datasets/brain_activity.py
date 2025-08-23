@@ -35,8 +35,9 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
         features = th.abs(th.load(join(self._data_path, f"{file_index}_eeg.pt")))
 
         if self.__normalize:
-            features = (features - th.mean(features, dim=1, keepdim=True)) / (
-                th.std(features, dim=1, keepdim=True) + 1e-8
+            # normalize over time (dim=0)
+            features = (features - th.mean(features, dim=0, keepdim=True)) / (
+                th.std(features, dim=0, keepdim=True) + 1e-8
             )
 
         return (
