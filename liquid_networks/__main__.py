@@ -42,6 +42,7 @@ def main() -> None:
         "--specific-parameters",
         type=_parse_specific_parameters,
         action="append",
+        default=[],
     )
     parser.add_argument("--cuda", action="store_true")
 

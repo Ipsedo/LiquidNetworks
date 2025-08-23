@@ -80,8 +80,8 @@ class BfrbLiquidRecurrent(
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        out: th.Tensor = self.__to_output(
-            th.mean(th.stack(outputs, dim=1), dim=1)
+        out: th.Tensor = th.mean(
+            self.__to_output(th.stack(outputs, dim=1)), dim=1
         )
         return out
 
