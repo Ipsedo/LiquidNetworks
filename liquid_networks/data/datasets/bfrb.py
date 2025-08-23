@@ -12,7 +12,7 @@ from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
 
 
 class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
-    def __init__(self, data_path: str) -> None:
+    def __init__(self, data_path: str, normalize_grid: bool, normalize_features: bool) -> None:
         super().__init__(data_path)
 
         regex_target = re.compile(r"^(.+)_target\.pth$")
@@ -25,6 +25,8 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
                 sequence_id.append(match.group(1))
 
         self.__idx_to_sequence_id = dict(enumerate(sequence_id))
+        self.__normalize_grid = normalize_grid
+        self.__normalize_features = normalize_features
 
     def __len__(self) -> int:
         return len(self.__idx_to_sequence_id)
@@ -32,12 +34,24 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     def __getitem__(self, index: int) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor]:
         target = th.load(join(self._data_path, f"{self.__idx_to_sequence_id[index]}_target.pth"))
 
-        grids = th.load(join(self._data_path, f"{self.__idx_to_sequence_id[index]}_grids.pth"))
-        grids = grids.to(th.float) / 255.0
+        grids = th.load(join(self._data_path, f"{self.__idx_to_sequence_id[index]}_grids.pth")).to(
+            th.float
+        )
+
+        if self.__normalize_grid:
+            min_value = 0.0
+            max_value = 255.0
+            grids = grids / (max_value - min_value) * 2.0 - 1.0
 
         features = th.load(
             join(self._data_path, f"{self.__idx_to_sequence_id[index]}_features.pth")
         )
+
+        if self.__normalize_features:
+            # std normalized over time (dim=0)
+            features = (features - features.mean(dim=0, keepdim=True)) / (
+                features.std(dim=0, keepdim=True) + 1e-8
+            )
 
         return (grids, features), target
 
@@ -89,4 +103,8 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
 class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):
     def get_dataset(self, data_path: str) -> AbstractDataset[tuple[th.Tensor, th.Tensor]]:
-        return BfrbDataset(data_path)
+        return BfrbDataset(
+            data_path,
+            self._get_config("normalize_grid", bool, True),
+            self._get_config("normalize_features", bool, True),
+        )
