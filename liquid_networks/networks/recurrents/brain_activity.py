@@ -73,6 +73,8 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
             *[CausalConvBlock(c_i, c_o) for c_i, c_o in channels]
         )
 
+        self.__dropout = nn.Dropout(0.1)
+
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         encoded_input: th.Tensor = self.__conv_encoder(
             i.transpose(1, 2)
@@ -85,7 +87,7 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         return th_f.softmax(
             super()._output_processing(
-                th.mean(th.stack(outputs, dim=1), dim=1)
+                th.mean(self.__dropout(th.stack(outputs, dim=1)), dim=1)
             ),
             dim=-1,
         )
