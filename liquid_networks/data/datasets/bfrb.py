@@ -38,12 +38,15 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
                 f"{self.__idx_to_sequence_id[index]}_target.pth",
             )
         )
+
         grids = th.load(
             join(
                 self._data_path,
                 f"{self.__idx_to_sequence_id[index]}_grids.pth",
             )
         )
+        grids = grids.to(th.float) / 255.0
+
         features = th.load(
             join(
                 self._data_path,
@@ -79,18 +82,20 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
                         x,
                         (0, 0, 0, 0, 0, 0, max_len - x.size(0), 0),
                         mode="constant",
-                        value=0,
+                        value=0.0,
                     )
                     for x in grids
                 ],
                 dim=0,
             )
-            grids_tensor = grids_tensor.to(th.float) / 255.0
 
             features_tensor = th.stack(
                 [
                     th_f.pad(
-                        x, (0, 0, max_len - x.size(0), 0), "constant", value=0
+                        x,
+                        (0, 0, max_len - x.size(0), 0),
+                        "constant",
+                        value=0.0,
                     )
                     for x in features
                 ],
