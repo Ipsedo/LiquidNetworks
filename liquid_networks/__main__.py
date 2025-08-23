@@ -99,8 +99,8 @@ def main() -> None:
             run_name=args.run_name,
             metric_window_size=args.metric_window_size,
             dataset_name=args.dataset,
-            train_dataset_path=args.train_data_path,
-            valid_dataset_path=args.valid_data_path,
+            train_dataset_path=args.train_dataset_path,
+            valid_dataset_path=args.valid_dataset_path,
             save_every=args.save_every,
             eval_every=args.eval_every,
         )
