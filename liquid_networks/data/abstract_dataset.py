@@ -18,7 +18,12 @@ class AbstractDataset[T](ABC, Dataset):
         pass
 
     @abstractmethod
-    def __getitem__(self, index: int) -> tuple[T, th.Tensor, th.Tensor]:
+    def __getitem__(self, index: int) -> tuple[T, th.Tensor]:
+        pass
+
+    @property
+    @abstractmethod
+    def delta_t(self) -> float:
         pass
 
     @property

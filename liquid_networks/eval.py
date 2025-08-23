@@ -29,17 +29,18 @@ def eval_model_on_dataset[T](
         valid_loss = 0.0
         nb_valid_examples = 0
 
-        for i, (f_v, t_v, y_v) in enumerate(valid_dataloader):
+        for i, (f_v, y_v) in enumerate(valid_dataloader):
             f_v = valid_dataset.to_device(f_v, device)
-            t_v = t_v.to(device=device)
             y_v = y_v.to(device=device)
 
-            valid_loss += loss_fn(ltc(f_v, t_v), y_v, "sum").item()
+            valid_loss += loss_fn(
+                ltc(f_v, valid_dataset.delta_t), y_v, "sum"
+            ).item()
 
             if callback_batch_iter is not None:
                 callback_batch_iter(i, len(valid_dataset))
 
-            nb_valid_examples += t_v.size(0)
+            nb_valid_examples += y_v.size(0)
 
         ltc.train()
 

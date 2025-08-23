@@ -37,9 +37,8 @@ def test_cell(
 
     x_t = th.randn(batch_size, neuron_number)
     input_t = th.randn(batch_size, input_size)
-    delta_t = th.rand(batch_size)
 
-    out = c(x_t, input_t, delta_t)
+    out = c(x_t, input_t, 1.0)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -65,9 +64,8 @@ def test_recurrent(
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
-    delta_t = th.rand(batch_size, time_steps)
 
-    out = r(input_t, delta_t)
+    out = r(input_t, 1.0)
 
     assert len(out.size()) == 3
     assert out.size(0) == batch_size
@@ -94,9 +92,8 @@ def test_recurrent_single(
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
-    delta_t = th.rand(batch_size, time_steps)
 
-    out = r(input_t, delta_t)
+    out = r(input_t, 1.0)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -124,9 +121,8 @@ def test_recurrent_brain_activity(
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
-    delta_t = th.rand(batch_size, time_steps)
 
-    out = r(input_t, delta_t)
+    out = r(input_t, 1.0)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -147,9 +143,8 @@ def test_recurrent_bfrb(
 
     input_grids = th.randn(batch_size, time_steps, 5, 8, 8)
     input_features = th.randn(batch_size, time_steps, 12)
-    delta_t = th.rand(batch_size, time_steps)
 
-    out = r((input_grids, input_features), delta_t)
+    out = r((input_grids, input_features), 1.0)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size

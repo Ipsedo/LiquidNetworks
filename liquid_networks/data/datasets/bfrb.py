@@ -31,7 +31,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
     def __getitem__(
         self, index: int
-    ) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor, th.Tensor]:
+    ) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor]:
         target = th.load(
             join(
                 self._data_path,
@@ -56,7 +56,6 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
         return (
             (grids, features),
-            th.ones(grids.size(0), dtype=th.float),
             target,
         )
 
@@ -67,11 +66,9 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     @property
     def collate_fn(self) -> Callable[[list], Any] | None:
         def __collate(
-            batch: list[
-                tuple[tuple[th.Tensor, th.Tensor], th.Tensor, th.Tensor]
-            ],
-        ) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor, th.Tensor]:
-            grids_features, deltas, targets = zip(*batch)
+            batch: list[tuple[tuple[th.Tensor, th.Tensor], th.Tensor]],
+        ) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor]:
+            grids_features, targets = zip(*batch)
             grids, features = zip(*grids_features)
 
             max_len = max(map(lambda g: g.size(0), grids))
@@ -104,18 +101,6 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
             return (
                 (grids_tensor, features_tensor),
-                th.stack(
-                    [
-                        th_f.pad(
-                            x,
-                            (max_len - x.size(0), 0),
-                            mode="constant",
-                            value=1.0,
-                        )
-                        for x in deltas
-                    ],
-                    dim=0,
-                ),
                 th.cat(targets, dim=0),
             )
 
@@ -125,3 +110,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
         self, data: tuple[th.Tensor, th.Tensor], device: th.device
     ) -> tuple[th.Tensor, th.Tensor]:
         return data[0].to(device), data[1].to(device)
+
+    @property
+    def delta_t(self) -> float:
+        return 1.0
