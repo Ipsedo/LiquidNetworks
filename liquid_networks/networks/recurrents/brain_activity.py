@@ -73,19 +73,23 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
             *[CausalConvBlock(c_i, c_o) for c_i, c_o in channels]
         )
 
+        self.__cls_token = nn.Parameter(th.randn(1, 1, channels[-1][1]))
+
     def _process_input(self, i: th.Tensor) -> th.Tensor:
-        encoded_input: th.Tensor = self.__conv_encoder(
-            i.transpose(1, 2)
-        ).transpose(1, 2)
-        return encoded_input
+        encoded_input = self.__conv_encoder(i.transpose(1, 2)).transpose(1, 2)
+        return th.cat(
+            [
+                encoded_input,
+                self.__cls_token.repeat(encoded_input.size(0), 1, 1),
+            ],
+            dim=1,
+        )
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
-        return out
+        return th_f.log_softmax(super()._output_processing(out), dim=-1)
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        return th_f.log_softmax(
-            super()._output_processing(th.stack(outputs, dim=1)), dim=-1
-        ).sum(dim=1)
+        return outputs[-1]
 
 
 class BrainActivityLiquidRecurrentFactory(

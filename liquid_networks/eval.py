@@ -37,7 +37,7 @@ def eval_model_on_dataset[T](
             valid_loss += loss_fn(ltc(f_v, t_v), y_v, "sum").item()
 
             if callback_batch_iter is not None:
-                callback_batch_iter(i, len(valid_dataloader))
+                callback_batch_iter(i, len(valid_dataset))
 
             nb_valid_examples += t_v.size(0)
 
