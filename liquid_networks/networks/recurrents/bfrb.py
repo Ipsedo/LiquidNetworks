@@ -27,9 +27,11 @@ class BfrbLiquidRecurrent(
 
         self.__nb_grids = 5
 
+        ltc_input_size = nb_features + channels[-1][1] * self.__nb_grids
+
         super().__init__(
             neuron_number,
-            nb_features + channels[-1][1] * self.__nb_grids,
+            ltc_input_size,
             unfolding_steps,
             activation_function,
         )
@@ -55,6 +57,8 @@ class BfrbLiquidRecurrent(
 
         self.__to_output = nn.Linear(neuron_number, output_size)
 
+        self.__cls_token = nn.Parameter(th.zeros(1, 1, ltc_input_size))
+
     def _process_input(self, i: tuple[th.Tensor, th.Tensor]) -> th.Tensor:
         grids, features = i
 
@@ -74,16 +78,20 @@ class BfrbLiquidRecurrent(
             dim=-1,
         )
 
-        return th.cat([encoded_grids, features], dim=-1)
+        return th.cat(
+            [
+                th.cat([encoded_grids, features], dim=-1),
+                self.__cls_token.repeat(b, 1, 1),
+            ],
+            dim=1,
+        )
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
-        return out
+        logits: th.Tensor = self.__to_output(out)
+        return logits
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        out: th.Tensor = th.mean(
-            self.__to_output(th.stack(outputs, dim=1)), dim=1
-        )
-        return out
+        return outputs[-1]
 
 
 class BfrbLiquidRecurrentFactory(
