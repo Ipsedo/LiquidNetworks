@@ -47,9 +47,7 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
     def __len__(self) -> int:
         return len(self.__df) // self.__seq_length
 
-    def __getitem__(
-        self, index: int
-    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def __getitem__(self, index: int) -> tuple[th.Tensor, th.Tensor]:
         index_start = index * self.__seq_length
         index_end = (index + 1) * self.__seq_length
 
@@ -60,7 +58,6 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
 
         return (
             th.tensor(features_df.to_numpy(), dtype=th.float),
-            th.ones(index_end - index_start, dtype=th.float),
             th.tensor(target_variable.to_numpy(), dtype=th.float),
         )
 
@@ -70,3 +67,7 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
+
+    @property
+    def delta_t(self) -> float:
+        return 1.0

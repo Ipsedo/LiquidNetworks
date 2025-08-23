@@ -27,9 +27,7 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
     def __len__(self) -> int:
         return len(self.__index_list)
 
-    def __getitem__(
-        self, index: int
-    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def __getitem__(self, index: int) -> tuple[th.Tensor, th.Tensor]:
         file_index = self.__index_list[index]
 
         # maybe broken, need update notebook
@@ -43,7 +41,6 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
 
         return (
             features,
-            th.ones(features.size(0), dtype=th.float),
             th.load(join(self._data_path, f"{file_index}_classes.pt")),
         )
 
@@ -53,3 +50,7 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
+
+    @property
+    def delta_t(self) -> float:
+        return 1.0

@@ -54,10 +54,10 @@ class LiquidCell(nn.Module):
         self.__unfolding_steps = unfolding_steps
 
     def forward(
-        self, x_t: th.Tensor, input_t: th.Tensor, delta_t: th.Tensor
+        self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float
     ) -> th.Tensor:
         x_t_next = x_t
-        delta_t = delta_t.unsqueeze(1) / self.__unfolding_steps
+        delta_t = delta_t / self.__unfolding_steps
 
         for _ in range(self.__unfolding_steps):
             x_t_next = (

@@ -46,7 +46,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         pass
 
-    def forward(self, i: T, delta_t: th.Tensor) -> th.Tensor:
+    def forward(self, i: T, delta: float) -> th.Tensor:
         i_encoded = self._process_input(i)
         x_t = self._get_first_x(i_encoded.size(0))
 
@@ -57,7 +57,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
         results = []
 
         for t in range(i_encoded.size(1)):
-            x_t = self.__cell(x_t, i_encoded[:, t, :], delta_t[:, t])
+            x_t = self.__cell(x_t, i_encoded[:, t, :], delta)
             results.append(self._output_processing(x_t))
 
         return self._sequence_processing(results)

@@ -76,13 +76,12 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                 collate_fn=train_dataset.collate_fn,
             )
 
-            for f, t, y in train_dataloader:
+            for f, y in train_dataloader:
 
                 f = train_dataset.to_device(f, device)
-                t = t.to(device=device)
                 y = y.to(device=device)
 
-                out = ltc(f, t)
+                out = ltc(f, train_dataset.delta_t)
                 loss = loss_fn(out, y, "batchmean")
 
                 optim.zero_grad(set_to_none=True)
