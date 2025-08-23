@@ -23,9 +23,7 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
         regex_activity = re.compile(r"^(\w+)_(\d+)$")
         regex_subject = re.compile(r"^sub_(\d+)\.csv$")
 
-        data_path = join(
-            dataset_path, "A_DeviceMotion_data", "A_DeviceMotion_data"
-        )
+        data_path = join(dataset_path, "A_DeviceMotion_data", "A_DeviceMotion_data")
 
         df_list: list[pd.DataFrame] = []
 
@@ -46,9 +44,7 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
                         sub_df["trial"] = int(trial)
                         sub_df["subject"] = int(subject)
                         sub_df["file_index"] = len(df_list)
-                        sub_df = sub_df.iloc[
-                            len(sub_df) % self.__seq_length :, :
-                        ]
+                        sub_df = sub_df.iloc[len(sub_df) % self.__seq_length :, :]
                         sub_df["time"] = list(range(len(sub_df)))
 
                         df_list.append(sub_df)
@@ -75,10 +71,7 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
         self.__target_column = "act"
 
         self.__class_to_idx = {
-            c: i
-            for i, c in enumerate(
-                sorted(self.__df[self.__target_column].unique())
-            )
+            c: i for i, c in enumerate(sorted(self.__df[self.__target_column].unique()))
         }
 
     def __len__(self) -> int:
@@ -91,9 +84,7 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
         sub_df = self.__df.iloc[index_start:index_end]
 
         features_df = sub_df[self.__features_columns].astype(float).fillna(0)
-        target_variable = self.__class_to_idx[
-            sub_df[self.__target_column].iloc[0]
-        ]
+        target_variable = self.__class_to_idx[sub_df[self.__target_column].iloc[0]]
 
         return (
             th.tensor(features_df.to_numpy(), dtype=th.float),

@@ -10,9 +10,7 @@ class LastLiquidRecurrent(LiquidRecurrent):
         return outputs[-1]
 
 
-class LastLiquidRecurrentFactory(
-    BaseLiquidRecurrentFactory[LastLiquidRecurrent]
-):
+class LastLiquidRecurrentFactory(BaseLiquidRecurrentFactory[LastLiquidRecurrent]):
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config, LastLiquidRecurrent)
 
@@ -23,9 +21,7 @@ class SoftmaxLiquidRecurrent(LiquidRecurrent):
         return th_f.softmax(super()._output_processing(out), -1)
 
 
-class SoftmaxLiquidRecurrentFactory(
-    BaseLiquidRecurrentFactory[SoftmaxLiquidRecurrent]
-):
+class SoftmaxLiquidRecurrentFactory(BaseLiquidRecurrentFactory[SoftmaxLiquidRecurrent]):
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config, SoftmaxLiquidRecurrent)
 
@@ -36,9 +32,7 @@ class LastSoftmaxLiquidRecurrent(SoftmaxLiquidRecurrent):
         return outputs[-1]
 
 
-class LastSoftmaxLiquidRecurrentFactory(
-    BaseLiquidRecurrentFactory[LastSoftmaxLiquidRecurrent]
-):
+class LastSoftmaxLiquidRecurrentFactory(BaseLiquidRecurrentFactory[LastSoftmaxLiquidRecurrent]):
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config, LastSoftmaxLiquidRecurrent)
 
@@ -49,9 +43,7 @@ class SigmoidLiquidRecurrent(LiquidRecurrent):
         return th_f.sigmoid(super()._output_processing(out))
 
 
-class SigmoidLiquidRecurrentFactory(
-    BaseLiquidRecurrentFactory[SigmoidLiquidRecurrent]
-):
+class SigmoidLiquidRecurrentFactory(BaseLiquidRecurrentFactory[SigmoidLiquidRecurrent]):
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config, SigmoidLiquidRecurrent)
 
@@ -63,8 +55,6 @@ class SoftplusLiquidRecurrent(LiquidRecurrent):
         return th_f.softplus(super()._output_processing(out))
 
 
-class SoftplusLiquidRecurrentFactory(
-    BaseLiquidRecurrentFactory[SoftplusLiquidRecurrent]
-):
+class SoftplusLiquidRecurrentFactory(BaseLiquidRecurrentFactory[SoftplusLiquidRecurrent]):
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config, SoftplusLiquidRecurrent)

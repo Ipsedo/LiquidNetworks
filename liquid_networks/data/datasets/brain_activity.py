@@ -32,9 +32,7 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
 
         # maybe broken, need update notebook
         # new shape: (Batch, Time, Features)
-        features = th.abs(
-            th.load(join(self._data_path, f"{file_index}_eeg.pt"))
-        )
+        features = th.abs(th.load(join(self._data_path, f"{file_index}_eeg.pt")))
         features = (features - th.mean(features, dim=1, keepdim=True)) / (
             th.std(features, dim=1, keepdim=True) + 1e-8
         )

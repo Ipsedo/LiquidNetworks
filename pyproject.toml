@@ -1,11 +1,11 @@
 [tool.black]
-line-length = 79
+line-length = 100
 
 [tool.pycln]
 all = true
 
 [tool.isort]
-line_length = 79
+line_length = 100
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0

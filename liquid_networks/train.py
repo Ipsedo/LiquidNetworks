@@ -11,9 +11,7 @@ from .metrics import Metric
 from .options import ModelOptions, TrainOptions
 
 
-def train_main(
-    model_options: ModelOptions, train_options: TrainOptions
-) -> None:
+def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
 
@@ -26,12 +24,7 @@ def train_main(
 
     with mlflow.start_run(run_name=train_options.run_name):
 
-        mlflow.log_params(
-            {
-                **dict(model_options),
-                **dict(train_options),
-            }
-        )
+        mlflow.log_params({**dict(model_options), **dict(train_options)})
 
         print(f"Will load '{train_options.dataset_name}' dataset.")
 
@@ -55,13 +48,7 @@ def train_main(
         loss_metric = Metric(train_options.metric_window_size)
         valid_metric = Metric(1)
 
-        tqdm_bar = tqdm(
-            range(
-                train_options.epoch
-                * len(train_dataset)
-                // train_options.batch_size
-            )
-        )
+        tqdm_bar = tqdm(range(train_options.epoch * len(train_dataset) // train_options.batch_size))
 
         for e in range(train_options.epoch):
 
@@ -109,24 +96,17 @@ def train_main(
 
                 if tqdm_bar.n % train_options.save_every == 0:
                     th.save(
-                        ltc.state_dict(),
-                        join(
-                            train_options.output_folder, f"ltc_{tqdm_bar.n}.pt"
-                        ),
+                        ltc.state_dict(), join(train_options.output_folder, f"ltc_{tqdm_bar.n}.pt")
                     )
 
                     th.save(
                         optim.state_dict(),
-                        join(
-                            train_options.output_folder,
-                            f"optim_{tqdm_bar.n}.pt",
-                        ),
+                        join(train_options.output_folder, f"optim_{tqdm_bar.n}.pt"),
                     )
 
                 if (
                     valid_dataset is not None
-                    and tqdm_bar.n % train_options.eval_every
-                    == train_options.eval_every - 1
+                    and tqdm_bar.n % train_options.eval_every == train_options.eval_every - 1
                 ):
 
                     def __callback(
@@ -135,8 +115,7 @@ def train_main(
                         text: str = tqdm_description,
                     ) -> None:
                         tqdm_bar.set_description(
-                            f"{text}, "
-                            f"Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
+                            f"{text}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
                         )
 
                     valid_loss = eval_model_on_dataset(
@@ -149,10 +128,6 @@ def train_main(
                     )
 
                     valid_metric.add_result(valid_loss)
-                    mlflow.log_metric(
-                        "valid_loss",
-                        valid_metric.get_last_metric(),
-                        step=tqdm_bar.n,
-                    )
+                    mlflow.log_metric("valid_loss", valid_metric.get_last_metric(), step=tqdm_bar.n)
 
                 tqdm_bar.update(1)

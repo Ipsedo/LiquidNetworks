@@ -18,8 +18,7 @@ def _parse_specific_parameters(arg: str) -> tuple[str, str]:
         value = match.group(2)
         return key, value
     raise argparse.ArgumentTypeError(
-        f"invalid option: {arg}. Expected key-value pair, "
-        "example: key_1=value_1"
+        f"invalid option: {arg}. Expected key-value pair, " "example: key_1=value_1"
     )
 
 
@@ -29,21 +28,12 @@ def main() -> None:
     # main parser
     parser.add_argument("--neuron-number", type=int, default=32)
     parser.add_argument("--unfolding-steps", type=int, default=6)
+    parser.add_argument("--task-type", type=str, required=True, choices=list(TaskType))
     parser.add_argument(
-        "--task-type", type=str, required=True, choices=list(TaskType)
+        "--activation-function", type=str, required=True, choices=list(ActivationFunction)
     )
     parser.add_argument(
-        "--activation-function",
-        type=str,
-        required=True,
-        choices=list(ActivationFunction),
-    )
-    parser.add_argument(
-        "-sp",
-        "--specific-parameters",
-        type=_parse_specific_parameters,
-        action="append",
-        default=[],
+        "-sp", "--specific-parameters", type=_parse_specific_parameters, action="append", default=[]
     )
     parser.add_argument("--cuda", action="store_true")
 
@@ -58,9 +48,7 @@ def main() -> None:
     train_parser.add_argument("--batch-size", type=int, default=128)
     train_parser.add_argument("--learning-rate", type=float, default=1e-3)
     train_parser.add_argument("--metric-window-size", type=int, default=64)
-    train_parser.add_argument(
-        "--dataset", type=str, required=True, choices=list(DatasetNames)
-    )
+    train_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
     train_parser.add_argument("--train-dataset-path", type=str, required=True)
     train_parser.add_argument("--valid-dataset-path", type=str)
     train_parser.add_argument("--save-every", type=int, default=1024)
@@ -72,9 +60,7 @@ def main() -> None:
     eval_parser.add_argument("run_name", type=str)
     eval_parser.add_argument("output_folder", type=str)
     eval_parser.add_argument("--model-path", type=str, required=True)
-    eval_parser.add_argument(
-        "--dataset", type=str, required=True, choices=list(DatasetNames)
-    )
+    eval_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
     eval_parser.add_argument("--dataset-path", type=str, required=True)
     eval_parser.add_argument("--batch-size", type=int, default=256)
 

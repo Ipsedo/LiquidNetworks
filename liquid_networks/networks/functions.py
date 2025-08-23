@@ -23,20 +23,12 @@ def cross_entropy_time_series(
     outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
 ) -> th.Tensor:
     assert len(outputs.size()) == 3
-    return _reduce(
-        th_f.cross_entropy(outputs, targets, reduction="none").mean(dim=1),
-        reduction,
-    )
+    return _reduce(th_f.cross_entropy(outputs, targets, reduction="none").mean(dim=1), reduction)
 
 
-def cross_entropy(
-    outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
-) -> th.Tensor:
+def cross_entropy(outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType) -> th.Tensor:
     assert len(outputs.size()) == 2
-    return _reduce(
-        th_f.cross_entropy(outputs, targets, reduction="none"),
-        reduction,
-    )
+    return _reduce(th_f.cross_entropy(outputs, targets, reduction="none"), reduction)
 
 
 def soft_cross_entropy(
@@ -46,14 +38,9 @@ def soft_cross_entropy(
     return _reduce(-(target_proba * proba.log()).sum(dim=1), reduction)
 
 
-def mse_loss(
-    outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
-) -> th.Tensor:
+def mse_loss(outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType) -> th.Tensor:
     assert len(outputs.size()) == 2
-    return _reduce(
-        th_f.mse_loss(outputs, targets, reduction="none").sum(dim=1),
-        reduction,
-    )
+    return _reduce(th_f.mse_loss(outputs, targets, reduction="none").sum(dim=1), reduction)
 
 
 def mse_loss_time_series(
@@ -61,21 +48,13 @@ def mse_loss_time_series(
 ) -> th.Tensor:
     assert len(outputs.size()) == 3
     return _reduce(
-        th_f.mse_loss(outputs, targets, reduction="none")
-        .sum(dim=2)
-        .mean(dim=1),
-        reduction,
+        th_f.mse_loss(outputs, targets, reduction="none").sum(dim=2).mean(dim=1), reduction
     )
 
 
-def kl_div(
-    outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
-) -> th.Tensor:
+def kl_div(outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType) -> th.Tensor:
     assert len(outputs.size()) == 2
-    return _reduce(
-        th_f.kl_div(outputs, targets, reduction="none").sum(dim=1),
-        reduction,
-    )
+    return _reduce(th_f.kl_div(outputs, targets, reduction="none").sum(dim=1), reduction)
 
 
 def kl_div_time_series(
@@ -83,8 +62,5 @@ def kl_div_time_series(
 ) -> th.Tensor:
     assert len(outputs.size()) == 3
     return _reduce(
-        th_f.kl_div(outputs.log(), targets, reduction="none")
-        .sum(dim=2)
-        .mean(dim=1),
-        reduction,
+        th_f.kl_div(outputs.log(), targets, reduction="none").sum(dim=2).mean(dim=1), reduction
     )

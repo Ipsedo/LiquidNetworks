@@ -25,7 +25,5 @@ _DATASET_DICT: Final[dict[DatasetNames, Type[AbstractDataset]]] = {
 }
 
 
-def get_dataset_constructor(
-    dataset_name: DatasetNames,
-) -> Type[AbstractDataset]:
+def get_dataset_constructor(dataset_name: DatasetNames) -> Type[AbstractDataset]:
     return _DATASET_DICT[dataset_name]

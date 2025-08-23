@@ -17,8 +17,6 @@ def min_max_normalize_column(s: Series) -> Series:
     deltas_mean = deltas_no_na.mean()
 
     if deltas_max != deltas_min:
-        return (s.fillna(deltas_mean).astype(float) - deltas_min) / (
-            deltas_max - deltas_min
-        )
+        return (s.fillna(deltas_mean).astype(float) - deltas_min) / (deltas_max - deltas_min)
 
     return s.fillna(deltas_mean).astype(float) / deltas_max

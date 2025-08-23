@@ -19,9 +19,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
     ) -> None:
         super().__init__()
 
-        self.__cell = LiquidCell(
-            neuron_number, input_size, unfolding_steps, activation_function
-        )
+        self.__cell = LiquidCell(neuron_number, input_size, unfolding_steps, activation_function)
 
         self.__neuron_number = neuron_number
 
@@ -63,15 +61,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
         return self._sequence_processing(results)
 
     def count_parameters(self) -> int:
-        return sum(
-            int(np.prod(p.size()))
-            for p in self.parameters()
-            if p.requires_grad
-        )
+        return sum(int(np.prod(p.size())) for p in self.parameters() if p.requires_grad)
 
     def grad_norm(self) -> float:
-        return mean(
-            float(p.grad.norm().item())
-            for p in self.parameters()
-            if p.grad is not None
-        )
+        return mean(float(p.grad.norm().item()) for p in self.parameters() if p.grad is not None)

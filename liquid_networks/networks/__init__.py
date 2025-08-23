@@ -63,13 +63,11 @@ _LOSS_DICT: Final[dict[TaskType, LossFunctionType]] = {
     TaskType.CLASSIFICATION: cross_entropy_time_series,
     TaskType.MULTI_LABELS: mse_loss_time_series,
     TaskType.LAST_CLASSIFICATION: cross_entropy,
-    TaskType.BRAIN_ACTIVITY: kl_div,
+    TaskType.BRAIN_ACTIVITY: cross_entropy,
     TaskType.BFRB: cross_entropy,
 }
 
-_ACT_FN_DICT: Final[
-    dict[ActivationFunction, Callable[[th.Tensor], th.Tensor]]
-] = {
+_ACT_FN_DICT: Final[dict[ActivationFunction, Callable[[th.Tensor], th.Tensor]]] = {
     ActivationFunction.MISH: th_f.mish,
     ActivationFunction.RELU: th_f.relu,
     ActivationFunction.SIGMOID: th_f.sigmoid,
@@ -87,7 +85,5 @@ def get_loss_function(task_type: TaskType) -> LossFunctionType:
     return _LOSS_DICT[task_type]
 
 
-def get_activation_fn(
-    act_fn: ActivationFunction,
-) -> Callable[[th.Tensor], th.Tensor]:
+def get_activation_fn(act_fn: ActivationFunction) -> Callable[[th.Tensor], th.Tensor]:
     return _ACT_FN_DICT[act_fn]

@@ -7,15 +7,12 @@ from ..abstract_recurent import AbstractLiquidRecurrent
 from ..factory import AbstractLiquidRecurrentFactory
 
 
-class BfrbLiquidRecurrent(
-    AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]
-):
+class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
     def __init__(
         self,
         neuron_number: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
-        dropout: float,
     ) -> None:
         channels = [
             (1, 8),
@@ -25,24 +22,15 @@ class BfrbLiquidRecurrent(
 
         ltc_input_size = self.nb_features + channels[-1][1] * self.nb_grids
 
-        super().__init__(
-            neuron_number,
-            ltc_input_size,
-            unfolding_steps,
-            activation_function,
-        )
+        super().__init__(neuron_number, ltc_input_size, unfolding_steps, activation_function)
 
         self.__grid_encoders = nn.ModuleList(
             nn.Sequential(
                 *[
                     nn.Sequential(
-                        nn.Conv2d(
-                            c_i, c_o, kernel_size=3, stride=1, padding=1
-                        ),
+                        nn.Conv2d(c_i, c_o, kernel_size=3, stride=1, padding=1),
                         nn.Mish(),
-                        nn.Conv2d(
-                            c_o, c_o, kernel_size=3, stride=2, padding=1
-                        ),
+                        nn.Conv2d(c_o, c_o, kernel_size=3, stride=2, padding=1),
                         nn.Mish(),
                     )
                     for c_i, c_o in channels
@@ -51,9 +39,7 @@ class BfrbLiquidRecurrent(
             for _ in range(self.nb_grids)
         )
 
-        self.__to_output = nn.Sequential(
-            nn.Dropout(dropout), nn.Linear(neuron_number, self.output_size)
-        )
+        self.__to_output = nn.Linear(neuron_number, self.output_size)
 
         self.__cls_token = nn.Parameter(th.zeros(1, 1, ltc_input_size))
 
@@ -64,11 +50,7 @@ class BfrbLiquidRecurrent(
 
         encoded_grids = th.cat(
             [
-                th.unflatten(
-                    enc(grids[:, :, i, None].flatten(0, 1)).flatten(1, -1),
-                    0,
-                    (b, t),
-                )
+                th.unflatten(enc(grids[:, :, i, None].flatten(0, 1)).flatten(1, -1), 0, (b, t))
                 for i, enc in enumerate(self.__grid_encoders)
             ],
             dim=-1,
@@ -106,18 +88,8 @@ class BfrbLiquidRecurrent(
         return 18
 
 
-class BfrbLiquidRecurrentFactory(
-    AbstractLiquidRecurrentFactory[tuple[th.Tensor, th.Tensor]]
-):
+class BfrbLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[tuple[th.Tensor, th.Tensor]]):
     def get_recurrent(
-        self,
-        neuron_number: int,
-        unfolding_steps: int,
-        act_fn: Callable[[th.Tensor], th.Tensor],
+        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
     ) -> AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]:
-        return BfrbLiquidRecurrent(
-            neuron_number,
-            unfolding_steps,
-            act_fn,
-            self._get_config("dropout", float),
-        )
+        return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn)

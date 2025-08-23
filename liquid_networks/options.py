@@ -25,12 +25,8 @@ class ModelOptions(BaseModel):
     cuda: bool
 
     def get_model(self) -> AbstractLiquidRecurrent:
-        return get_model_constructor(self.task_type)(
-            self.specific_parameters
-        ).get_recurrent(
-            self.neuron_number,
-            self.unfolding_steps,
-            get_activation_fn(self.activation_function),
+        return get_model_constructor(self.task_type)(self.specific_parameters).get_recurrent(
+            self.neuron_number, self.unfolding_steps, get_activation_fn(self.activation_function)
         )
 
     def get_loss_function(
@@ -60,16 +56,12 @@ class TrainOptions(BaseModel):
     eval_every: int
 
     def get_train_dataset(self) -> AbstractDataset:
-        return get_dataset_constructor(self.dataset_name)(
-            self.train_dataset_path
-        )
+        return get_dataset_constructor(self.dataset_name)(self.train_dataset_path)
 
     def get_valid_dataset(self) -> AbstractDataset | None:
         if self.valid_dataset_path is None:
             return None
-        return get_dataset_constructor(self.dataset_name)(
-            self.valid_dataset_path
-        )
+        return get_dataset_constructor(self.dataset_name)(self.valid_dataset_path)
 
 
 class EvalOptions(BaseModel):

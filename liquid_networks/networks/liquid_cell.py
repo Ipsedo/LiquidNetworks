@@ -16,9 +16,7 @@ class CellModel(nn.Module):
         std = 1e-3
 
         self.__weights = nn.Linear(input_size, neuron_number, bias=False)
-        self.__recurrent_weights = nn.Linear(
-            neuron_number, neuron_number, bias=False
-        )
+        self.__recurrent_weights = nn.Linear(neuron_number, neuron_number, bias=False)
         self.__biases = nn.Parameter(th.randn(1, neuron_number) * std)
 
         self.__activation_function = activation_function
@@ -26,9 +24,7 @@ class CellModel(nn.Module):
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
         # x_t: (batch, input_size)
         return self.__activation_function(
-            self.__recurrent_weights(x_t)
-            + self.__weights(input_t)
-            + self.__biases
+            self.__recurrent_weights(x_t) + self.__weights(input_t) + self.__biases
         )
 
     @property
@@ -53,16 +49,14 @@ class LiquidCell(nn.Module):
 
         self.__unfolding_steps = unfolding_steps
 
-    def forward(
-        self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float
-    ) -> th.Tensor:
+    def forward(self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float) -> th.Tensor:
         x_t_next = x_t
         delta_t = delta_t / self.__unfolding_steps
 
         for _ in range(self.__unfolding_steps):
-            x_t_next = (
-                x_t_next + delta_t * self.__f(x_t_next, input_t) * self.__a
-            ) / (1 + delta_t * (1 / self.__tau + self.__f(x_t_next, input_t)))
+            x_t_next = (x_t_next + delta_t * self.__f(x_t_next, input_t) * self.__a) / (
+                1 + delta_t * (1 / self.__tau + self.__f(x_t_next, input_t))
+            )
 
         return x_t_next
 

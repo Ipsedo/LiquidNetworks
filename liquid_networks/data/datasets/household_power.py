@@ -19,10 +19,7 @@ class HouseholdPowerDataset(AbstractDataset[th.Tensor]):
         self.__df = pd.read_csv(csv_path, sep=";", header=0, low_memory=False)
         self.__df = self.__df.iloc[len(self.__df) % self.__seq_length :, :]
         self.__df["date"] = self.__df.apply(
-            lambda r: datetime.strptime(
-                f"{r['Date']} {r['Time']}", "%d/%m/%Y %H:%M:%S"
-            ),
-            axis=1,
+            lambda r: datetime.strptime(f"{r['Date']} {r['Time']}", "%d/%m/%Y %H:%M:%S"), axis=1
         )
         self.__df = self.__df.drop(columns=["Date", "Time"])
 

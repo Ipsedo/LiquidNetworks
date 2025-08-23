@@ -29,35 +29,17 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     def __len__(self) -> int:
         return len(self.__idx_to_sequence_id)
 
-    def __getitem__(
-        self, index: int
-    ) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor]:
-        target = th.load(
-            join(
-                self._data_path,
-                f"{self.__idx_to_sequence_id[index]}_target.pth",
-            )
-        )
+    def __getitem__(self, index: int) -> tuple[tuple[th.Tensor, th.Tensor], th.Tensor]:
+        target = th.load(join(self._data_path, f"{self.__idx_to_sequence_id[index]}_target.pth"))
 
-        grids = th.load(
-            join(
-                self._data_path,
-                f"{self.__idx_to_sequence_id[index]}_grids.pth",
-            )
-        )
+        grids = th.load(join(self._data_path, f"{self.__idx_to_sequence_id[index]}_grids.pth"))
         grids = grids.to(th.float) / 255.0
 
         features = th.load(
-            join(
-                self._data_path,
-                f"{self.__idx_to_sequence_id[index]}_features.pth",
-            )
+            join(self._data_path, f"{self.__idx_to_sequence_id[index]}_features.pth")
         )
 
-        return (
-            (grids, features),
-            target,
-        )
+        return (grids, features), target
 
     @property
     def task_type(self) -> networks.TaskType:
@@ -76,10 +58,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
             grids_tensor = th.stack(
                 [
                     th_f.pad(
-                        x,
-                        (0, 0, 0, 0, 0, 0, max_len - x.size(0), 0),
-                        mode="constant",
-                        value=0.0,
+                        x, (0, 0, 0, 0, 0, 0, max_len - x.size(0), 0), mode="constant", value=0.0
                     )
                     for x in grids
                 ],
@@ -88,21 +67,13 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
             features_tensor = th.stack(
                 [
-                    th_f.pad(
-                        x,
-                        (0, 0, max_len - x.size(0), 0),
-                        "constant",
-                        value=0.0,
-                    )
+                    th_f.pad(x, (0, 0, max_len - x.size(0), 0), "constant", value=0.0)
                     for x in features
                 ],
                 dim=0,
             )
 
-            return (
-                (grids_tensor, features_tensor),
-                th.cat(targets, dim=0),
-            )
+            return (grids_tensor, features_tensor), th.cat(targets, dim=0)
 
         return __collate
 

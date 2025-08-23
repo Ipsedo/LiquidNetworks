@@ -38,9 +38,7 @@ def eval_model_on_dataset[T](
             f_v = valid_dataset.to_device(f_v, device)
             y_v = y_v.to(device=device)
 
-            valid_loss += loss_fn(
-                ltc(f_v, valid_dataset.delta_t), y_v, "sum"
-            ).item()
+            valid_loss += loss_fn(ltc(f_v, valid_dataset.delta_t), y_v, "sum").item()
 
             if callback_batch_iter is not None:
                 callback_batch_iter(i, len(valid_dataset))
@@ -62,12 +60,7 @@ def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
 
     with mlflow.start_run(run_name=eval_options.run_name):
 
-        mlflow.log_params(
-            {
-                **dict(model_options),
-                **dict(eval_options),
-            }
-        )
+        mlflow.log_params({**dict(model_options), **dict(eval_options)})
 
         print(f"Will load '{eval_options.dataset_name}' dataset.")
 
@@ -81,9 +74,7 @@ def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
         loss_fn = model_options.get_loss_function()
 
         ltc.to(device=device)
-        ltc.load_state_dict(
-            th.load(eval_options.model_path, map_location=device)
-        )
+        ltc.load_state_dict(th.load(eval_options.model_path, map_location=device))
 
         print("Nb parameters:", ltc.count_parameters())
 

@@ -3,9 +3,7 @@ import torch as th
 
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
 from liquid_networks.networks.recurrents.bfrb import BfrbLiquidRecurrent
-from liquid_networks.networks.recurrents.brain_activity import (
-    BrainActivityLiquidRecurrent,
-)
+from liquid_networks.networks.recurrents.brain_activity import BrainActivityLiquidRecurrent
 from liquid_networks.networks.recurrents.simple import LiquidRecurrent
 from liquid_networks.networks.recurrents.variants import LastLiquidRecurrent
 
@@ -30,9 +28,7 @@ def test_f(batch_size: int, neuron_number: int, input_size: int) -> None:
 @pytest.mark.parametrize("neuron_number", [2, 4])
 @pytest.mark.parametrize("input_size", [2, 4])
 @pytest.mark.parametrize("unfolding_steps", [2, 4])
-def test_cell(
-    batch_size: int, neuron_number: int, input_size: int, unfolding_steps: int
-) -> None:
+def test_cell(batch_size: int, neuron_number: int, input_size: int, unfolding_steps: int) -> None:
     c = LiquidCell(neuron_number, input_size, unfolding_steps, th.tanh)
 
     x_t = th.randn(batch_size, neuron_number)
@@ -59,9 +55,7 @@ def test_recurrent(
     time_steps: int,
     output_size: int,
 ) -> None:
-    r = LiquidRecurrent(
-        neuron_number, input_size, unfolding_steps, th.tanh, output_size
-    )
+    r = LiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, output_size)
 
     input_t = th.randn(batch_size, time_steps, input_size)
 
@@ -87,9 +81,7 @@ def test_recurrent_single(
     time_steps: int,
     output_size: int,
 ) -> None:
-    r = LastLiquidRecurrent(
-        neuron_number, input_size, unfolding_steps, th.tanh, output_size
-    )
+    r = LastLiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, output_size)
 
     input_t = th.randn(batch_size, time_steps, input_size)
 
@@ -123,7 +115,6 @@ def test_recurrent_brain_activity(
         th.tanh,
         nb_layer,
         factor,
-        0.1,
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
@@ -145,7 +136,7 @@ def test_recurrent_bfrb(
     unfolding_steps: int,
     time_steps: int,
 ) -> None:
-    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh, 0.1)
+    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh)
 
     input_grids = th.randn(batch_size, time_steps, r.nb_grids, *r.grid_size)
     input_features = th.randn(batch_size, time_steps, r.nb_features)

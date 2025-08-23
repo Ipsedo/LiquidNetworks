@@ -16,9 +16,7 @@ class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
         activation_function: Callable[[th.Tensor], th.Tensor],
         output_size: int,
     ) -> None:
-        super().__init__(
-            neuron_number, input_size, unfolding_steps, activation_function
-        )
+        super().__init__(neuron_number, input_size, unfolding_steps, activation_function)
 
         self.__to_output = nn.Linear(neuron_number, output_size)
 
@@ -36,17 +34,12 @@ class LiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
 class BaseLiquidRecurrentFactory[LtcConstructor: LiquidRecurrent](
     AbstractLiquidRecurrentFactory[th.Tensor]
 ):
-    def __init__(
-        self, config: dict[str, str], ltc_constructor: type[LtcConstructor]
-    ) -> None:
+    def __init__(self, config: dict[str, str], ltc_constructor: type[LtcConstructor]) -> None:
         super().__init__(config)
         self.__ltc_constructor = ltc_constructor
 
     def get_recurrent(
-        self,
-        neuron_number: int,
-        unfolding_steps: int,
-        act_fn: Callable[[th.Tensor], th.Tensor],
+        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
     ) -> AbstractLiquidRecurrent[th.Tensor]:
         return self.__ltc_constructor(
             neuron_number,

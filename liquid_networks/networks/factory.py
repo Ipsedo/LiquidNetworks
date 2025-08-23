@@ -25,9 +25,6 @@ class AbstractLiquidRecurrentFactory[T](ABC):
 
     @abstractmethod
     def get_recurrent(
-        self,
-        neuron_number: int,
-        unfolding_steps: int,
-        act_fn: Callable[[th.Tensor], th.Tensor],
+        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
     ) -> AbstractLiquidRecurrent[T]:
         pass
