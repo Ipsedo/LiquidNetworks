@@ -141,11 +141,11 @@ def test_recurrent_bfrb(
 ) -> None:
     r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh)
 
-    input_grids = th.randn(batch_size, time_steps, 5, 8, 8)
-    input_features = th.randn(batch_size, time_steps, 12)
+    input_grids = th.randn(batch_size, time_steps, r.nb_grids, *r.grid_size)
+    input_features = th.randn(batch_size, time_steps, r.nb_features)
 
     out = r((input_grids, input_features), 1.0)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
-    assert out.size(1) == 18
+    assert out.size(1) == r.output_size
