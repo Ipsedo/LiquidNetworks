@@ -53,7 +53,6 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         activation_function: Callable[[th.Tensor], th.Tensor],
         nb_layers: int,
         factor: float,
-        dropout: float,
     ) -> None:
         channels = [
             (int(input_size * factor**i), int(input_size * factor ** (i + 1)))
@@ -74,8 +73,6 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
             *[CausalConvBlock(c_i, c_o) for c_i, c_o in channels]
         )
 
-        self.__dropout = nn.Dropout(dropout)
-
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         encoded_input: th.Tensor = self.__conv_encoder(
             i.transpose(1, 2)
@@ -86,11 +83,12 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        return th_f.softmax(
-            super()._output_processing(
-                th.mean(self.__dropout(th.stack(outputs, dim=1)), dim=1)
-            ),
-            dim=-1,
+        return (
+            th_f.log_softmax(
+                super()._output_processing(th.stack(outputs, dim=1)), dim=-1
+            )
+            .sum(dim=1)
+            .exp()
         )
 
 
@@ -110,5 +108,4 @@ class BrainActivityLiquidRecurrentFactory(
             act_fn,
             self._get_config("nb_layers", int),
             self._get_config("factor", float),
-            self._get_config("dropout", float),
         )

@@ -120,13 +120,7 @@ def test_recurrent_brain_activity(
     factor: float,
 ) -> None:
     r = BrainActivityLiquidRecurrent(
-        neuron_number,
-        input_size,
-        unfolding_steps,
-        th.tanh,
-        nb_layer,
-        factor,
-        0.1,
+        neuron_number, input_size, unfolding_steps, th.tanh, nb_layer, factor
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
