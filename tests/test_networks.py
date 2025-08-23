@@ -1,11 +1,11 @@
-from typing import Type
-
 import pytest
 import torch as th
 
+from liquid_networks.networks.factory import LtcConstructorType
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
 from liquid_networks.networks.recurrents import (
     BfrbLiquidRecurrent,
+    BrainActivityLiquidRecurrent,
     LastLiquidRecurrent,
     LastSoftmaxLiquidRecurrent,
     LiquidRecurrent,
@@ -65,7 +65,7 @@ def test_recurrent(
     unfolding_steps: int,
     time_steps: int,
     output_size: int,
-    ltc_constructor: Type[LiquidRecurrent],
+    ltc_constructor: LtcConstructorType,
 ) -> None:
     r = ltc_constructor(
         neuron_number, input_size, unfolding_steps, th.tanh, output_size
@@ -89,7 +89,12 @@ def test_recurrent(
 @pytest.mark.parametrize("time_steps", [512, 256])
 @pytest.mark.parametrize("output_size", [2, 4])
 @pytest.mark.parametrize(
-    "ltc_constructor", [LastSoftmaxLiquidRecurrent, LastLiquidRecurrent]
+    "ltc_constructor",
+    [
+        LastSoftmaxLiquidRecurrent,
+        LastLiquidRecurrent,
+        BrainActivityLiquidRecurrent,
+    ],
 )
 def test_recurrent_single(
     batch_size: int,
@@ -98,7 +103,7 @@ def test_recurrent_single(
     unfolding_steps: int,
     time_steps: int,
     output_size: int,
-    ltc_constructor: Type[LiquidRecurrent],
+    ltc_constructor: LtcConstructorType,
 ) -> None:
     r = ltc_constructor(
         neuron_number, input_size, unfolding_steps, th.tanh, output_size

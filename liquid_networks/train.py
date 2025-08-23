@@ -6,6 +6,7 @@ import torch as th
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from .eval import eval_model_on_dataset
 from .metrics import Metric
 from .options import ModelOptions, TrainOptions
 
@@ -130,43 +131,31 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
                     and tqdm_bar.n % train_options.eval_every
                     == train_options.eval_every - 1
                 ):
-                    with th.no_grad():
-                        ltc.eval()
 
-                        valid_dataloader = DataLoader(
-                            valid_dataset,
-                            batch_size=train_options.batch_size,
-                            num_workers=6,
-                            collate_fn=valid_dataset.collate_fn,
+                    def __callback(
+                        eval_batch_idx: int,
+                        nb_data: int,
+                        text: str = tqdm_description,
+                    ) -> None:
+                        tqdm_bar.set_description(
+                            f"{text}, "
+                            f"Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
                         )
 
-                        valid_loss = 0.0
-                        nb_valid_examples = 0
+                    valid_loss = eval_model_on_dataset(
+                        ltc,
+                        valid_dataset,
+                        train_options.batch_size,
+                        device,
+                        loss_fn,
+                        __callback,
+                    )
 
-                        for i, (f_v, t_v, y_v) in enumerate(valid_dataloader):
-                            f_v = valid_dataset.to_device(f_v, device)
-                            t_v = t_v.to(device=device)
-                            y_v = y_v.to(device=device)
-
-                            valid_loss += loss_fn(
-                                ltc(f_v, t_v), y_v, "sum"
-                            ).item()
-
-                            tqdm_bar.set_description(
-                                f"{tqdm_description}, "
-                                f"Eval {i} / {len(valid_dataset) // train_options.batch_size}"
-                            )
-
-                            nb_valid_examples += t_v.size(0)
-
-                        valid_loss /= nb_valid_examples
-                        valid_metric.add_result(valid_loss)
-                        mlflow.log_metric(
-                            "valid_loss",
-                            valid_metric.get_last_metric(),
-                            step=tqdm_bar.n,
-                        )
-
-                        ltc.train()
+                    valid_metric.add_result(valid_loss)
+                    mlflow.log_metric(
+                        "valid_loss",
+                        valid_metric.get_last_metric(),
+                        step=tqdm_bar.n,
+                    )
 
                 tqdm_bar.update(1)

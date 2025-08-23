@@ -20,12 +20,12 @@ from .recurrents import (
     SoftplusLiquidRecurrent,
 )
 
-_ModuleConstructorType = Callable[
+LtcConstructorType = Callable[
     [int, int, int, Callable[[th.Tensor], th.Tensor], int],
     AbstractLiquidRecurrent,
 ]
 
-_MODEL_DICT: Final[dict[str, _ModuleConstructorType]] = {
+_MODEL_DICT: Final[dict[str, LtcConstructorType]] = {
     "regression": LiquidRecurrent,
     "positive_regression": SoftplusLiquidRecurrent,
     "classification": LiquidRecurrent,
@@ -69,7 +69,7 @@ ActivationFunction = Literal[
 ]
 
 
-def get_model_constructor(task_type: TaskType) -> _ModuleConstructorType:
+def get_model_constructor(task_type: TaskType) -> LtcConstructorType:
     return _MODEL_DICT[task_type]
 
 
