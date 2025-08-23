@@ -117,7 +117,13 @@ def test_recurrent_brain_activity(
     factor: float,
 ) -> None:
     r = BrainActivityLiquidRecurrent(
-        neuron_number, input_size, unfolding_steps, th.tanh, nb_layer, factor
+        neuron_number,
+        input_size,
+        unfolding_steps,
+        th.tanh,
+        nb_layer,
+        factor,
+        0.1,
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
@@ -139,7 +145,7 @@ def test_recurrent_bfrb(
     unfolding_steps: int,
     time_steps: int,
 ) -> None:
-    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh)
+    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh, 0.1)
 
     input_grids = th.randn(batch_size, time_steps, r.nb_grids, *r.grid_size)
     input_features = th.randn(batch_size, time_steps, r.nb_features)
