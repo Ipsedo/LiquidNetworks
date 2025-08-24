@@ -39,7 +39,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
         )
 
         if self.__normalize_grid:
-            grids = grids / 255.0 * 2.0 - 1.0
+            grids = (grids + 1.0) / 256.0 * 2.0 - 1.0
 
         features = th.load(
             join(self._data_path, f"{self.__idx_to_sequence_id[index]}_features.pth")
@@ -88,7 +88,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
 
     @property
     def delta_t(self) -> float:
-        return 1.0
+        return 1e-3
 
 
 class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):

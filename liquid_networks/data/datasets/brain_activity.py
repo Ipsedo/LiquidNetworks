@@ -54,7 +54,7 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
 
     @property
     def delta_t(self) -> float:
-        return 1.0
+        return 1e-3
 
 
 class HarmfulBrainActivityDatasetFactory(AbstractDatasetFactory[th.Tensor]):

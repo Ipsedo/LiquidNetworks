@@ -51,6 +51,8 @@ class LiquidCell(nn.Module):
         super().__init__()
 
         self.__a = nn.Parameter(th.rand(1, neuron_number) - 0.5)
+
+        self.__tau_min = 1e-2
         self.__tau_raw = nn.Parameter(th.rand(1, neuron_number) * 2.0 + 0.5)
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
@@ -60,7 +62,7 @@ class LiquidCell(nn.Module):
     @property
     def __tau(self) -> th.Tensor:
         # pylint: disable=not-callable
-        return th_f.softplus(self.__tau_raw)
+        return th_f.softplus(self.__tau_raw) + self.__tau_min
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float) -> th.Tensor:
         x_t_next = x_t

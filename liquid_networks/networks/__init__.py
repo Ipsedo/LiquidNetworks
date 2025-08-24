@@ -5,7 +5,7 @@ import torch as th
 from torch.nn import functional as th_f
 
 from .abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
-from .functions import (
+from .losses import (
     LossFunctionType,
     cross_entropy,
     cross_entropy_time_series,

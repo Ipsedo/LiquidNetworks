@@ -13,7 +13,7 @@ from .networks import (
     get_loss_function,
     get_model_constructor,
 )
-from .networks.functions import ReductionType
+from .networks.losses import ReductionType
 
 
 class ModelOptions(BaseModel):

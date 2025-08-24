@@ -34,6 +34,10 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
             ),
         )
 
+    @property
+    def _activation_function(self) -> Callable[[th.Tensor], th.Tensor]:
+        return self.__cell.activation_function
+
     @abstractmethod
     def _process_input(self, i: T) -> th.Tensor:
         pass

@@ -4,6 +4,7 @@ import torch as th
 from torch import nn
 
 from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
+from ..function import ActFnModule
 
 
 class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
@@ -14,28 +15,25 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         activation_function: Callable[[th.Tensor], th.Tensor],
     ) -> None:
         channels = [
-            (1, 8),
-            (8, 16),
+            (self.nb_grids, 16),
             (16, 32),
+            (32, 64),
         ]
 
-        ltc_input_size = self.nb_features + channels[-1][1] * self.nb_grids
+        ltc_input_size = self.nb_features + channels[-1][1]
 
         super().__init__(neuron_number, ltc_input_size, unfolding_steps, activation_function)
 
-        self.__grid_encoders = nn.ModuleList(
-            nn.Sequential(
-                *[
-                    nn.Sequential(
-                        nn.Conv2d(c_i, c_o, kernel_size=3, stride=1, padding=1),
-                        nn.Mish(),
-                        nn.Conv2d(c_o, c_o, kernel_size=3, stride=2, padding=1),
-                        nn.Mish(),
-                    )
-                    for c_i, c_o in channels
-                ]
-            )
-            for _ in range(self.nb_grids)
+        self.__grid_encoder = nn.Sequential(
+            *[
+                nn.Sequential(
+                    nn.Conv2d(c_i, c_o, kernel_size=3, stride=1, padding=1),
+                    ActFnModule(self._activation_function),
+                    nn.Conv2d(c_o, c_o, kernel_size=3, stride=2, padding=1),
+                    ActFnModule(self._activation_function),
+                )
+                for c_i, c_o in channels
+            ]
         )
 
         self.__to_output = nn.Linear(neuron_number, self.output_size)
@@ -47,12 +45,8 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         b, t = grids.size()[:2]
 
-        encoded_grids = th.cat(
-            [
-                th.unflatten(enc(grids[:, :, i, None].flatten(0, 1)).flatten(1, -1), 0, (b, t))
-                for i, enc in enumerate(self.__grid_encoders)
-            ],
-            dim=-1,
+        encoded_grids = th.unflatten(
+            self.__grid_encoder(grids.flatten(0, 1)).flatten(1, -1), 0, (b, t)
         )
 
         return th.cat(

@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as th_f
 
 from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
+from ..function import ActFnModule
 from .simple import LiquidRecurrent
 
 
@@ -27,12 +28,14 @@ class CausalConv1d(nn.Conv1d):
 
 
 class CausalConvBlock(nn.Sequential):
-    def __init__(self, in_channels: int, out_channels: int) -> None:
+    def __init__(
+        self, in_channels: int, out_channels: int, act_fn: Callable[[th.Tensor], th.Tensor]
+    ) -> None:
         super().__init__(
             CausalConv1d(in_channels, out_channels, 3, 1),
-            nn.Mish(),
+            ActFnModule(act_fn),
             CausalConv1d(out_channels, out_channels, 3, 2),
-            nn.Mish(),
+            ActFnModule(act_fn),
         )
 
 
@@ -57,7 +60,9 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
             neuron_number, channels[-1][1], unfolding_steps, activation_function, output_size
         )
 
-        self.__conv_encoder = nn.Sequential(*[CausalConvBlock(c_i, c_o) for c_i, c_o in channels])
+        self.__conv_encoder = nn.Sequential(
+            *[CausalConvBlock(c_i, c_o, self._activation_function) for c_i, c_o in channels]
+        )
 
         self.__cls_token = nn.Parameter(th.randn(1, 1, channels[-1][1]))
 

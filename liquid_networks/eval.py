@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from .data import AbstractDataset
 from .networks import AbstractLiquidRecurrent
-from .networks.functions import LossFunctionType
+from .networks.losses import LossFunctionType
 from .options import EvalOptions, ModelOptions
 
 
