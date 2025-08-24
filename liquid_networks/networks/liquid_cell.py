@@ -42,16 +42,16 @@ class LiquidCell(nn.Module):
         super().__init__()
 
         self.__a = nn.Parameter(th.zeros(1, neuron_number))
-        self.__tau = nn.Parameter(th.zeros(1, neuron_number).fill_(0.5))
+        self.__tau_raw = nn.Parameter(th.zeros(1, neuron_number).fill_(0.5))
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
 
         self.__unfolding_steps = unfolding_steps
 
     @property
-    def tau(self) -> th.Tensor:
+    def __tau(self) -> th.Tensor:
         # pylint: disable=not-callable
-        return th_f.softplus(self.__tau)
+        return th_f.softplus(self.__tau_raw)
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float) -> th.Tensor:
         x_t_next = x_t
@@ -59,7 +59,7 @@ class LiquidCell(nn.Module):
 
         for _ in range(self.__unfolding_steps):
             f = self.__f(x_t_next, input_t)
-            x_t_next = (x_t_next + delta_t * f * self.__a) / (1 + delta_t * (1 / self.tau + f))
+            x_t_next = (x_t_next + delta_t * f * self.__a) / (1 + delta_t * (1 / self.__tau + f))
 
         return x_t_next
 
