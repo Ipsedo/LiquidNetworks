@@ -1,3 +1,4 @@
+import random
 from functools import partial
 from os import makedirs
 from os.path import exists, isdir
@@ -13,9 +14,12 @@ from .options import ModelOptions, TrainOptions
 from .saver import ModelSaver
 
 
-def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None:
+def train_main(seed: int, model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
+
+    th.manual_seed(seed)
+    random.seed(seed)
 
     if not exists(train_options.output_folder):
         makedirs(train_options.output_folder)

@@ -26,6 +26,8 @@ def main() -> None:
     parser = argparse.ArgumentParser("liquid_networks main")
 
     # main parser
+    parser.add_argument("--seed", type=int, default=314159)
+
     parser.add_argument("--neuron-number", type=int, default=32)
     parser.add_argument("--unfolding-steps", type=int, default=6)
     parser.add_argument("--task-type", type=str, required=True, choices=list(TaskType))
@@ -101,7 +103,7 @@ def main() -> None:
             workers=args.dataloader_workers,
         )
 
-        train_main(model_options, train_options)
+        train_main(args.seed, model_options, train_options)
 
     elif args.mode == "eval":
         eval_options = EvalOptions(

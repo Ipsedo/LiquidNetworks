@@ -14,11 +14,20 @@ class CellModel(nn.Module):
     ) -> None:
         super().__init__()
 
+        std = 1e-1
+
+        def __init_weights(w: th.Tensor) -> None:
+            th.nn.init.normal_(w, 0.0, std)
+
         self.__weights = nn.Linear(input_size, neuron_number, bias=False)
         self.__recurrent_weights = nn.Linear(neuron_number, neuron_number, bias=False)
-        self.__biases = nn.Parameter(th.zeros(1, neuron_number))
+        self.__biases = nn.Parameter(th.randn(1, neuron_number))
 
         self.__activation_function = activation_function
+
+        __init_weights(self.__biases)
+        __init_weights(self.__weights.weight)
+        __init_weights(self.__recurrent_weights.weight)
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
         # x_t: (batch, input_size)
@@ -41,8 +50,8 @@ class LiquidCell(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.__a = nn.Parameter(th.zeros(1, neuron_number))
-        self.__tau_raw = nn.Parameter(th.zeros(1, neuron_number).fill_(0.5))
+        self.__a = nn.Parameter(th.rand(1, neuron_number) - 0.5)
+        self.__tau_raw = nn.Parameter(th.rand(1, neuron_number) * 2.0 + 0.5)
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
 
