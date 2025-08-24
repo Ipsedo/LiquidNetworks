@@ -14,12 +14,12 @@ from .options import ModelOptions, TrainOptions
 from .saver import ModelSaver
 
 
-def train_main(seed: int, model_options: ModelOptions, train_options: TrainOptions) -> None:
+def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
 
-    th.manual_seed(seed)
-    random.seed(seed)
+    th.manual_seed(train_options.seed)
+    random.seed(train_options.seed)
 
     if not exists(train_options.output_folder):
         makedirs(train_options.output_folder)
@@ -41,7 +41,9 @@ def train_main(seed: int, model_options: ModelOptions, train_options: TrainOptio
         if valid_dataset is not None:
             print("eval data count:", len(valid_dataset))
 
-        assert train_dataset.task_type == model_options.task_type
+        assert (
+            train_dataset.task_type == model_options.task_type
+        ), f"Wrong task type : '{train_dataset.task_type}' != '{model_options.task_type}'"
 
         ltc = model_options.get_model()
         optim = th.optim.Adam(ltc.parameters(), lr=train_options.learning_rate)
@@ -62,7 +64,7 @@ def train_main(seed: int, model_options: ModelOptions, train_options: TrainOptio
 
         def __callback(eval_batch_idx: int, nb_data: int, desc: str) -> None:
             tqdm_bar.set_description(
-                f"{desc}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
+                f"{desc}Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
             )
 
         for e in range(train_options.epoch):

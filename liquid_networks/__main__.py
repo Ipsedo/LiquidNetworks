@@ -8,7 +8,7 @@ from .options import EvalOptions, ModelOptions, TrainOptions
 from .train import train_main
 
 
-def _parse_specific_parameters(arg: str) -> tuple[str, str]:
+def _parse_key_value_parameters(arg: str) -> tuple[str, str]:
     regex_key_value = re.compile(r"^ *([^= ]+)=([^= ]+) *$")
 
     match = regex_key_value.match(arg)
@@ -17,6 +17,7 @@ def _parse_specific_parameters(arg: str) -> tuple[str, str]:
         key = match.group(1)
         value = match.group(2)
         return key, value
+
     raise argparse.ArgumentTypeError(
         f"invalid option: {arg}. Expected key-value pair, " "example: key_1=value_1"
     )
@@ -35,7 +36,11 @@ def main() -> None:
         "--activation-function", type=str, required=True, choices=list(ActivationFunction)
     )
     parser.add_argument(
-        "-sp", "--specific-parameters", type=_parse_specific_parameters, action="append", default=[]
+        "-sp",
+        "--specific-parameters",
+        type=_parse_key_value_parameters,
+        action="append",
+        default=[],
     )
     parser.add_argument("--cuda", action="store_true")
 
@@ -52,7 +57,7 @@ def main() -> None:
     train_parser.add_argument("--metric-window-size", type=int, default=64)
     train_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
     train_parser.add_argument(
-        "-dp", "--dataset-parameters", type=_parse_specific_parameters, action="append", default=[]
+        "-dp", "--dataset-parameters", type=_parse_key_value_parameters, action="append", default=[]
     )
     train_parser.add_argument("--train-dataset-path", type=str, required=True)
     train_parser.add_argument("--valid-dataset-path", type=str)
@@ -68,7 +73,7 @@ def main() -> None:
     eval_parser.add_argument("--model-path", type=str, required=True)
     eval_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
     eval_parser.add_argument(
-        "-dp", "--dataset-parameters", type=_parse_specific_parameters, action="append", default=[]
+        "-dp", "--dataset-parameters", type=_parse_key_value_parameters, action="append", default=[]
     )
     eval_parser.add_argument("--dataset-path", type=str, required=True)
     eval_parser.add_argument("--batch-size", type=int, default=256)
@@ -88,6 +93,7 @@ def main() -> None:
 
     if args.mode == "train":
         train_options = TrainOptions(
+            seed=args.seed,
             epoch=args.epoch,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
@@ -103,7 +109,7 @@ def main() -> None:
             workers=args.dataloader_workers,
         )
 
-        train_main(args.seed, model_options, train_options)
+        train_main(model_options, train_options)
 
     elif args.mode == "eval":
         eval_options = EvalOptions(

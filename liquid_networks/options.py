@@ -43,6 +43,7 @@ class ModelOptions(BaseModel):
 
 
 class TrainOptions(BaseModel):
+    seed: int
     epoch: int
     batch_size: int
     learning_rate: float
