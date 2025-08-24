@@ -28,7 +28,7 @@ class ModelSaver:
         self.__global_counter = 0
 
     def tick_save(self) -> None:
-        if self.__curr_idx % self.__save_every == self.__save_every - 1:
+        if self.__curr_idx % self.__save_every == 0:
             if not exists(self.__output_folder):
                 makedirs(self.__output_folder)
             elif not isdir(self.__output_folder):

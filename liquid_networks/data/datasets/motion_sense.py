@@ -86,9 +86,8 @@ class MotionSenseDataset(AbstractDataset[th.Tensor]):
         features_df = sub_df[self.__features_columns].astype(float).fillna(0)
         target_variable = self.__class_to_idx[sub_df[self.__target_column].iloc[0]]
 
-        return (
-            th.tensor(features_df.to_numpy(), dtype=th.float),
-            th.tensor(target_variable, dtype=th.long),
+        return th.tensor(features_df.to_numpy(), dtype=th.float), th.tensor(
+            target_variable, dtype=th.long
         )
 
     @property

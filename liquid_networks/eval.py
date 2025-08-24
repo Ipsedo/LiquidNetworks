@@ -19,6 +19,7 @@ def eval_model_on_dataset[T](
     batch_size: int,
     device: th.device,
     loss_fn: LossFunctionType,
+    dataloader_workers: int,
     callback_batch_iter: Callable[[int, int], None] | None = None,
 ) -> float:
     with th.no_grad():
@@ -27,7 +28,7 @@ def eval_model_on_dataset[T](
         valid_dataloader = DataLoader(
             valid_dataset,
             batch_size=batch_size,
-            num_workers=6,
+            num_workers=dataloader_workers,
             collate_fn=valid_dataset.collate_fn,
         )
 
@@ -85,7 +86,7 @@ def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
             tqdm_bar.update(eval_options.batch_size)
 
         eval_loss = eval_model_on_dataset(
-            ltc, dataset, eval_options.batch_size, device, loss_fn, _callback
+            ltc, dataset, eval_options.batch_size, device, loss_fn, eval_options.workers, _callback
         )
 
         tqdm_bar.write(f"Eval loss = {eval_loss}")

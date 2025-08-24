@@ -10,12 +10,7 @@ from .simple import LiquidRecurrent
 
 class CausalConv1d(nn.Conv1d):
     def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size: int,
-        stride: int,
-        dilation: int = 1,
+        self, in_channels: int, out_channels: int, kernel_size: int, stride: int, dilation: int = 1
     ) -> None:
         super().__init__(
             in_channels,

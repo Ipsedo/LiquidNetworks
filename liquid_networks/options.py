@@ -55,6 +55,7 @@ class TrainOptions(BaseModel):
     valid_dataset_path: str | None
     save_every: int
     eval_every: int
+    workers: int
 
     def get_train_dataset(self) -> AbstractDataset:
         return get_dataset_constructor(self.dataset_name)(self.dataset_parameters).get_dataset(
@@ -77,6 +78,7 @@ class EvalOptions(BaseModel):
     dataset_parameters: dict[str, str]
     dataset_path: str
     batch_size: int
+    workers: int
 
     def get_dataset(self) -> AbstractDataset:
         return get_dataset_constructor(self.dataset_name)(self.dataset_parameters).get_dataset(

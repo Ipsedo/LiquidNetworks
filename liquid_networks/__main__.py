@@ -56,6 +56,7 @@ def main() -> None:
     train_parser.add_argument("--valid-dataset-path", type=str)
     train_parser.add_argument("--save-every", type=int, default=1024)
     train_parser.add_argument("--eval-every", type=int, default=1024)
+    train_parser.add_argument("--dataloader-workers", type=int, default=4)
 
     # eval parser
     eval_parser = sub_parsers.add_parser("eval")
@@ -69,6 +70,7 @@ def main() -> None:
     )
     eval_parser.add_argument("--dataset-path", type=str, required=True)
     eval_parser.add_argument("--batch-size", type=int, default=256)
+    eval_parser.add_argument("--dataloader-workers", type=int, default=4)
 
     # get args
     args = parser.parse_args()
@@ -96,6 +98,7 @@ def main() -> None:
             valid_dataset_path=args.valid_dataset_path,
             save_every=args.save_every,
             eval_every=args.eval_every,
+            workers=args.dataloader_workers,
         )
 
         train_main(model_options, train_options)
@@ -109,6 +112,7 @@ def main() -> None:
             dataset_parameters=dict(args.dataset_parameters),
             dataset_path=args.dataset_path,
             batch_size=args.batch_size,
+            workers=args.dataloader_workers,
         )
 
         eval_main(model_options, eval_options)

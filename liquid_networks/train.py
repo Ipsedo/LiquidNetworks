@@ -55,13 +55,18 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
 
         tqdm_bar = tqdm(range(train_options.epoch * len(train_dataset) // train_options.batch_size))
 
+        def __callback(eval_batch_idx: int, nb_data: int) -> None:
+            tqdm_bar.set_description(
+                f"{tqdm_bar.desc}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
+            )
+
         for e in range(train_options.epoch):
 
             train_dataloader = DataLoader(
                 train_dataset,
                 batch_size=train_options.batch_size,
                 shuffle=True,
-                num_workers=12,
+                num_workers=train_options.workers,
                 drop_last=True,
                 collate_fn=train_dataset.collate_fn,
             )
@@ -90,31 +95,25 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                     step=tqdm_bar.n,
                 )
 
-                tqdm_description = (
+                tqdm_bar.set_description(
                     f"Epoch {e:03} : "
                     f"loss = {loss_metric.get_last_metric():.4f}, "
                     f"loss_smoothed = {loss_metric.get_smoothed_metric():.4f}, "
                     f"valid_loss = {valid_metric.get_last_metric():.4f}, "
                     f"grad_norm = {grad_norm:.4f}"
                 )
-                tqdm_bar.set_description(tqdm_description)
 
                 model_saver.tick_save()
 
-                if (
-                    valid_dataset is not None
-                    and tqdm_bar.n % train_options.eval_every == train_options.eval_every - 1
-                ):
-
-                    def __callback(
-                        eval_batch_idx: int, nb_data: int, text: str = tqdm_description
-                    ) -> None:
-                        tqdm_bar.set_description(
-                            f"{text}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
-                        )
-
+                if valid_dataset is not None and tqdm_bar.n % train_options.eval_every == 0:
                     valid_loss = eval_model_on_dataset(
-                        ltc, valid_dataset, train_options.batch_size, device, loss_fn, __callback
+                        ltc,
+                        valid_dataset,
+                        train_options.batch_size,
+                        device,
+                        loss_fn,
+                        train_options.workers,
+                        __callback,
                     )
 
                     valid_metric.add_result(valid_loss)
