@@ -2,6 +2,7 @@ from typing import Callable
 
 import torch as th
 from torch import nn
+from torch.nn import functional as th_f
 
 
 class CellModel(nn.Module):
@@ -13,11 +14,9 @@ class CellModel(nn.Module):
     ) -> None:
         super().__init__()
 
-        std = 1e-3
-
         self.__weights = nn.Linear(input_size, neuron_number, bias=False)
         self.__recurrent_weights = nn.Linear(neuron_number, neuron_number, bias=False)
-        self.__biases = nn.Parameter(th.randn(1, neuron_number) * std)
+        self.__biases = nn.Parameter(th.zeros(1, neuron_number))
 
         self.__activation_function = activation_function
 
@@ -42,21 +41,25 @@ class LiquidCell(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.__a = nn.Parameter(th.ones(1, neuron_number))
-        self.__tau = nn.Parameter(th.ones(1, neuron_number))
+        self.__a = nn.Parameter(th.zeros(1, neuron_number))
+        self.__tau = nn.Parameter(th.zeros(1, neuron_number).fill_(0.5))
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
 
         self.__unfolding_steps = unfolding_steps
+
+    @property
+    def tau(self) -> th.Tensor:
+        # pylint: disable=not-callable
+        return th_f.softplus(self.__tau)
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor, delta_t: float) -> th.Tensor:
         x_t_next = x_t
         delta_t = delta_t / self.__unfolding_steps
 
         for _ in range(self.__unfolding_steps):
-            x_t_next = (x_t_next + delta_t * self.__f(x_t_next, input_t) * self.__a) / (
-                1 + delta_t * (1 / self.__tau + self.__f(x_t_next, input_t))
-            )
+            f = self.__f(x_t_next, input_t)
+            x_t_next = (x_t_next + delta_t * f * self.__a) / (1 + delta_t * (1 / self.tau + f))
 
         return x_t_next
 
