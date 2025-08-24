@@ -1,3 +1,4 @@
+from functools import partial
 from os import makedirs
 from os.path import exists, isdir
 
@@ -55,9 +56,9 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
 
         tqdm_bar = tqdm(range(train_options.epoch * len(train_dataset) // train_options.batch_size))
 
-        def __callback(eval_batch_idx: int, nb_data: int) -> None:
+        def __callback(eval_batch_idx: int, nb_data: int, desc: str) -> None:
             tqdm_bar.set_description(
-                f"{tqdm_bar.desc}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
+                f"{desc}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
             )
 
         for e in range(train_options.epoch):
@@ -113,7 +114,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                         device,
                         loss_fn,
                         train_options.workers,
-                        __callback,
+                        partial(__callback, desc=tqdm_bar.desc),
                     )
 
                     valid_metric.add_result(valid_loss)
