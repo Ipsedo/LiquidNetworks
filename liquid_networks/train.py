@@ -1,5 +1,5 @@
 from os import makedirs
-from os.path import exists, isdir, join
+from os.path import exists, isdir
 
 import mlflow
 import torch as th
@@ -9,6 +9,7 @@ from tqdm import tqdm
 from .eval import eval_model_on_dataset
 from .metrics import Metric
 from .options import ModelOptions, TrainOptions
+from .saver import ModelSaver
 
 
 def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None:
@@ -42,6 +43,10 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
         loss_fn = model_options.get_loss_function()
 
         ltc.to(device=device)
+
+        model_saver = ModelSaver(
+            "ltc", train_options.output_folder, ltc, optim, train_options.save_every
+        )
 
         print("Nb parameters:", ltc.count_parameters())
 
@@ -94,15 +99,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                 )
                 tqdm_bar.set_description(tqdm_description)
 
-                if tqdm_bar.n % train_options.save_every == 0:
-                    th.save(
-                        ltc.state_dict(), join(train_options.output_folder, f"ltc_{tqdm_bar.n}.pt")
-                    )
-
-                    th.save(
-                        optim.state_dict(),
-                        join(train_options.output_folder, f"optim_{tqdm_bar.n}.pt"),
-                    )
+                model_saver.tick_save()
 
                 if (
                     valid_dataset is not None
@@ -110,21 +107,14 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                 ):
 
                     def __callback(
-                        eval_batch_idx: int,
-                        nb_data: int,
-                        text: str = tqdm_description,
+                        eval_batch_idx: int, nb_data: int, text: str = tqdm_description
                     ) -> None:
                         tqdm_bar.set_description(
                             f"{text}, Eval {eval_batch_idx} / {nb_data // train_options.batch_size}"
                         )
 
                     valid_loss = eval_model_on_dataset(
-                        ltc,
-                        valid_dataset,
-                        train_options.batch_size,
-                        device,
-                        loss_fn,
-                        __callback,
+                        ltc, valid_dataset, train_options.batch_size, device, loss_fn, __callback
                     )
 
                     valid_metric.add_result(valid_loss)

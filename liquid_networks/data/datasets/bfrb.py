@@ -39,9 +39,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
         )
 
         if self.__normalize_grid:
-            min_value = 0.0
-            max_value = 255.0
-            grids = grids / (max_value - min_value) * 2.0 - 1.0
+            grids = grids / 255.0 * 2.0 - 1.0
 
         features = th.load(
             join(self._data_path, f"{self.__idx_to_sequence_id[index]}_features.pth")
@@ -70,20 +68,12 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
             max_len = max(map(lambda g: g.size(0), grids))
 
             grids_tensor = th.stack(
-                [
-                    th_f.pad(
-                        x, (0, 0, 0, 0, 0, 0, max_len - x.size(0), 0), mode="constant", value=0.0
-                    )
-                    for x in grids
-                ],
+                [th_f.pad(x, (*[0] * 6, max_len - x.size(0), 0)) for x in grids],
                 dim=0,
             )
 
             features_tensor = th.stack(
-                [
-                    th_f.pad(x, (0, 0, max_len - x.size(0), 0), "constant", value=0.0)
-                    for x in features
-                ],
+                [th_f.pad(x, (0, 0, max_len - x.size(0), 0)) for x in features],
                 dim=0,
             )
 
