@@ -27,10 +27,9 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         self.__grid_encoder = nn.Sequential(
             *[
                 nn.Sequential(
-                    nn.Conv2d(c_i, c_o, kernel_size=3, stride=1, padding=1),
+                    nn.Conv2d(c_i, c_o, kernel_size=3, stride=2, padding=1),
                     ActFnModule(self._activation_function),
-                    nn.Conv2d(c_o, c_o, kernel_size=3, stride=2, padding=1),
-                    ActFnModule(self._activation_function),
+                    nn.GroupNorm(c_o, c_o, affine=True),
                 )
                 for c_i, c_o in channels
             ]

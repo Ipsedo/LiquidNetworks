@@ -32,10 +32,9 @@ class CausalConvBlock(nn.Sequential):
         self, in_channels: int, out_channels: int, act_fn: Callable[[th.Tensor], th.Tensor]
     ) -> None:
         super().__init__(
-            CausalConv1d(in_channels, out_channels, 3, 1),
+            CausalConv1d(in_channels, out_channels, 3, 2),
             ActFnModule(act_fn),
-            CausalConv1d(out_channels, out_channels, 3, 2),
-            ActFnModule(act_fn),
+            nn.GroupNorm(out_channels, out_channels, affine=True),
         )
 
 

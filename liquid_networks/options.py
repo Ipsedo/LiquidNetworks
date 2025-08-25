@@ -47,6 +47,7 @@ class TrainOptions(BaseModel):
     epoch: int
     batch_size: int
     learning_rate: float
+    grad_norm_clip: float
     output_folder: str | Path
     run_name: str
     metric_window_size: int
