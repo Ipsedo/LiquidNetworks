@@ -18,10 +18,13 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
         input_size: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> None:
         super().__init__()
 
-        self.__cell = LiquidCell(neuron_number, input_size, unfolding_steps, activation_function)
+        self.__cell = LiquidCell(
+            neuron_number, input_size, unfolding_steps, activation_function, delta_t
+        )
 
         self.__neuron_number = neuron_number
 
@@ -50,7 +53,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         pass
 
-    def forward(self, i: T, delta: float) -> th.Tensor:
+    def forward(self, i: T) -> th.Tensor:
         i_encoded = self._process_input(i)
         x_t = self._get_first_x(i_encoded.size(0))
 
@@ -61,7 +64,7 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
         results = []
 
         for t in range(i_encoded.size(1)):
-            x_t = self.__cell(x_t, i_encoded[:, t, :], delta)
+            x_t = self.__cell(x_t, i_encoded[:, t, :])
             results.append(self._output_processing(x_t))
 
         return self._sequence_processing(results)
@@ -76,6 +79,10 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
 class AbstractLiquidRecurrentFactory[T](BaseFactory, ABC):
     @abstractmethod
     def get_recurrent(
-        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> AbstractLiquidRecurrent[T]:
         pass

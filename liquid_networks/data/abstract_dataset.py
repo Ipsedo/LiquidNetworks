@@ -24,11 +24,6 @@ class AbstractDataset[T](ABC, Dataset):
 
     @property
     @abstractmethod
-    def delta_t(self) -> float:
-        pass
-
-    @property
-    @abstractmethod
     def task_type(self) -> networks.TaskType:
         pass
 

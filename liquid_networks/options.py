@@ -20,13 +20,17 @@ class ModelOptions(BaseModel):
     neuron_number: int
     unfolding_steps: int
     activation_function: ActivationFunction
+    delta_t: float
     task_type: TaskType
     specific_parameters: dict[str, str]
     cuda: bool
 
     def get_model(self) -> AbstractLiquidRecurrent:
         return get_model_constructor(self.task_type)(self.specific_parameters).get_recurrent(
-            self.neuron_number, self.unfolding_steps, get_activation_fn(self.activation_function)
+            self.neuron_number,
+            self.unfolding_steps,
+            get_activation_fn(self.activation_function),
+            self.delta_t,
         )
 
     def get_loss_function(

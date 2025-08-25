@@ -45,6 +45,7 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         input_size: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
         nb_layers: int,
         factor: float,
     ) -> None:
@@ -56,7 +57,12 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
         output_size = 6
 
         super().__init__(
-            neuron_number, channels[-1][1], unfolding_steps, activation_function, output_size
+            neuron_number,
+            channels[-1][1],
+            unfolding_steps,
+            activation_function,
+            delta_t,
+            output_size,
         )
 
         self.__conv_encoder = nn.Sequential(
@@ -75,13 +81,19 @@ class BrainActivityLiquidRecurrent(LiquidRecurrent):
 
 class BrainActivityLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[th.Tensor]):
     def get_recurrent(
-        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> AbstractLiquidRecurrent[th.Tensor]:
+        # pylint: disable=duplicate-code
         return BrainActivityLiquidRecurrent(
             neuron_number,
             self._get_config("input_size", int),
             unfolding_steps,
             act_fn,
+            delta_t,
             self._get_config("nb_layers", int),
             self._get_config("factor", float),
         )

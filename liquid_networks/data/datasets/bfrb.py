@@ -88,10 +88,6 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     ) -> tuple[th.Tensor, th.Tensor]:
         return data[0].to(device), data[1].to(device)
 
-    @property
-    def delta_t(self) -> float:
-        return 1e-3
-
 
 class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):
     def get_dataset(self, data_path: str) -> AbstractDataset[tuple[th.Tensor, th.Tensor]]:
@@ -163,10 +159,6 @@ class BfrbFeaturesOnlyDataset(AbstractDataset[th.Tensor]):
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
-
-    @property
-    def delta_t(self) -> float:
-        return 1e-3
 
 
 class BfrbFeaturesOnlyDatasetFactory(AbstractDatasetFactory[th.Tensor]):

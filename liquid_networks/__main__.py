@@ -31,6 +31,7 @@ def main() -> None:
 
     parser.add_argument("--neuron-number", type=int, default=32)
     parser.add_argument("--unfolding-steps", type=int, default=6)
+    parser.add_argument("--delta-t", type=float, default=1.0)
     parser.add_argument("--task-type", type=str, required=True, choices=list(TaskType))
     parser.add_argument(
         "--activation-function", type=str, required=True, choices=list(ActivationFunction)
@@ -86,6 +87,7 @@ def main() -> None:
     model_options = ModelOptions(
         neuron_number=args.neuron_number,
         unfolding_steps=args.unfolding_steps,
+        delta_t=args.delta_t,
         activation_function=args.activation_function,
         task_type=args.task_type,
         specific_parameters=dict(args.specific_parameters),

@@ -16,6 +16,7 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         neuron_number: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> None:
         channels = [
             (self.nb_grids, 16),
@@ -25,7 +26,9 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         ltc_input_size = self.nb_features + channels[-1][1]
 
-        super().__init__(neuron_number, ltc_input_size, unfolding_steps, activation_function)
+        super().__init__(
+            neuron_number, ltc_input_size, unfolding_steps, activation_function, delta_t
+        )
 
         self.__grid_encoder = nn.Sequential(
             *[
@@ -85,9 +88,13 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
 class BfrbLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[tuple[th.Tensor, th.Tensor]]):
     def get_recurrent(
-        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]:
-        return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn)
+        return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn, delta_t)
 
 
 # Without grids
@@ -99,9 +106,15 @@ class BfrbFeaturesOnlyLiquidRecurrent(LiquidRecurrent):
         neuron_number: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> None:
         super().__init__(
-            neuron_number, self.nb_features, unfolding_steps, activation_function, self.output_size
+            neuron_number,
+            self.nb_features,
+            unfolding_steps,
+            activation_function,
+            delta_t,
+            self.output_size,
         )
 
         self.__cls_token = nn.Parameter(th.randn(1, 1, self.nb_features))
@@ -123,6 +136,10 @@ class BfrbFeaturesOnlyLiquidRecurrent(LiquidRecurrent):
 
 class BfrbFeaturesOnlyLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[th.Tensor]):
     def get_recurrent(
-        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        act_fn: Callable[[th.Tensor], th.Tensor],
+        delta_t: float,
     ) -> AbstractLiquidRecurrent[th.Tensor]:
-        return BfrbFeaturesOnlyLiquidRecurrent(neuron_number, unfolding_steps, act_fn)
+        return BfrbFeaturesOnlyLiquidRecurrent(neuron_number, unfolding_steps, act_fn, delta_t)

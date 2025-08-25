@@ -39,7 +39,7 @@ def eval_model_on_dataset[T](
             f_v = valid_dataset.to_device(f_v, device)
             y_v = y_v.to(device=device)
 
-            valid_loss += loss_fn(ltc(f_v, valid_dataset.delta_t), y_v, "sum").item()
+            valid_loss += loss_fn(ltc(f_v), y_v, "sum").item()
 
             if callback_batch_iter is not None:
                 callback_batch_iter(i, len(valid_dataset))

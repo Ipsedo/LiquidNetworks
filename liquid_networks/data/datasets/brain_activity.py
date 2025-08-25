@@ -52,10 +52,6 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
 
-    @property
-    def delta_t(self) -> float:
-        return 1e-3
-
 
 class HarmfulBrainActivityDatasetFactory(AbstractDatasetFactory[th.Tensor]):
     def get_dataset(self, data_path: str) -> AbstractDataset[th.Tensor]:

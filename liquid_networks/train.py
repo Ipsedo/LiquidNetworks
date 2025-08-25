@@ -83,7 +83,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                 f = train_dataset.to_device(f, device)
                 y = y.to(device=device)
 
-                out = ltc(f, train_dataset.delta_t)
+                out = ltc(f)
                 loss = loss_fn(out, y, "batchmean")
 
                 optim.zero_grad(set_to_none=True)

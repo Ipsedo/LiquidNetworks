@@ -29,12 +29,12 @@ def test_f(batch_size: int, neuron_number: int, input_size: int) -> None:
 @pytest.mark.parametrize("input_size", [2, 4])
 @pytest.mark.parametrize("unfolding_steps", [2, 4])
 def test_cell(batch_size: int, neuron_number: int, input_size: int, unfolding_steps: int) -> None:
-    c = LiquidCell(neuron_number, input_size, unfolding_steps, th.tanh)
+    c = LiquidCell(neuron_number, input_size, unfolding_steps, th.tanh, 1.0)
 
     x_t = th.randn(batch_size, neuron_number)
     input_t = th.randn(batch_size, input_size)
 
-    out = c(x_t, input_t, 1.0)
+    out = c(x_t, input_t)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -55,11 +55,11 @@ def test_recurrent(
     time_steps: int,
     output_size: int,
 ) -> None:
-    r = LiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, output_size)
+    r = LiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, 1.0, output_size)
 
     input_t = th.randn(batch_size, time_steps, input_size)
 
-    out = r(input_t, 1.0)
+    out = r(input_t)
 
     assert len(out.size()) == 3
     assert out.size(0) == batch_size
@@ -81,11 +81,11 @@ def test_recurrent_single(
     time_steps: int,
     output_size: int,
 ) -> None:
-    r = LastLiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, output_size)
+    r = LastLiquidRecurrent(neuron_number, input_size, unfolding_steps, th.tanh, 1.0, output_size)
 
     input_t = th.randn(batch_size, time_steps, input_size)
 
-    out = r(input_t, 1.0)
+    out = r(input_t)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -113,13 +113,14 @@ def test_recurrent_brain_activity(
         input_size,
         unfolding_steps,
         th.tanh,
+        1.0,
         nb_layer,
         factor,
     )
 
     input_t = th.randn(batch_size, time_steps, input_size)
 
-    out = r(input_t, 1.0)
+    out = r(input_t)
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
@@ -136,12 +137,12 @@ def test_recurrent_bfrb(
     unfolding_steps: int,
     time_steps: int,
 ) -> None:
-    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh)
+    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh, 1.0)
 
     input_grids = th.randn(batch_size, time_steps, r.nb_grids, *r.grid_size)
     input_features = th.randn(batch_size, time_steps, r.nb_features)
 
-    out = r((input_grids, input_features), 1.0)
+    out = r((input_grids, input_features))
 
     assert len(out.size()) == 2
     assert out.size(0) == batch_size
