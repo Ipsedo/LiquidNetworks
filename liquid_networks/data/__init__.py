@@ -4,6 +4,7 @@ from typing import Final, Type
 from .abstract_dataset import AbstractDataset, AbstractDatasetFactory
 from .datasets import (
     BfrbDatasetFactory,
+    BfrbFeaturesOnlyDatasetFactory,
     HarmfulBrainActivityDatasetFactory,
     HouseholdPowerDatasetFactory,
     MotionSenseDatasetFactory,
@@ -15,6 +16,7 @@ class DatasetNames(StrEnum):
     MOTION_SENSE = "motion_sense"
     BRAIN_ACTIVITY = "brain_activity"
     BFRB = "bfrb"
+    BFRB_FEATURES = "bfrb_features"
 
 
 _DATASET_DICT: Final[dict[DatasetNames, Type[AbstractDatasetFactory]]] = {
@@ -22,6 +24,7 @@ _DATASET_DICT: Final[dict[DatasetNames, Type[AbstractDatasetFactory]]] = {
     DatasetNames.MOTION_SENSE: MotionSenseDatasetFactory,
     DatasetNames.BRAIN_ACTIVITY: HarmfulBrainActivityDatasetFactory,
     DatasetNames.BFRB: BfrbDatasetFactory,
+    DatasetNames.BFRB_FEATURES: BfrbFeaturesOnlyDatasetFactory,
 }
 
 

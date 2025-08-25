@@ -13,6 +13,7 @@ from .losses import (
     mse_loss_time_series,
 )
 from .recurrents import (
+    BfrbFeaturesOnlyLiquidRecurrentFactory,
     BfrbLiquidRecurrentFactory,
     BrainActivityLiquidRecurrentFactory,
     LastLiquidRecurrentFactory,
@@ -35,6 +36,7 @@ class TaskType(StrEnum):
     LAST_CLASSIFICATION = "last_classification"
     BRAIN_ACTIVITY = "brain_activity"
     BFRB = "bfrb"
+    BFRB_FEATURES = "bfrb_features"
 
 
 class ActivationFunction(StrEnum):
@@ -54,6 +56,7 @@ _MODEL_DICT: Final[dict[TaskType, ModelFactoryConstructor]] = {
     TaskType.LAST_CLASSIFICATION: LastLiquidRecurrentFactory,
     TaskType.BRAIN_ACTIVITY: BrainActivityLiquidRecurrentFactory,
     TaskType.BFRB: BfrbLiquidRecurrentFactory,
+    TaskType.BFRB_FEATURES: BfrbFeaturesOnlyLiquidRecurrentFactory,
 }
 
 _LOSS_DICT: Final[dict[TaskType, LossFunctionType]] = {
@@ -64,6 +67,7 @@ _LOSS_DICT: Final[dict[TaskType, LossFunctionType]] = {
     TaskType.LAST_CLASSIFICATION: cross_entropy,
     TaskType.BRAIN_ACTIVITY: cross_entropy,
     TaskType.BFRB: cross_entropy,
+    TaskType.BFRB_FEATURES: cross_entropy,
 }
 
 _ACT_FN_DICT: Final[dict[ActivationFunction, Callable[[th.Tensor], th.Tensor]]] = {

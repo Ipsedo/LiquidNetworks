@@ -1,4 +1,4 @@
-from .bfrb import BfrbDatasetFactory
+from .bfrb import BfrbDatasetFactory, BfrbFeaturesOnlyDatasetFactory
 from .brain_activity import HarmfulBrainActivityDatasetFactory
 from .household_power import HouseholdPowerDatasetFactory
 from .motion_sense import MotionSenseDatasetFactory

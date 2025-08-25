@@ -5,6 +5,9 @@ from torch import nn
 
 from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
 from ..function import ActFnModule
+from .simple import LiquidRecurrent
+
+# With grids
 
 
 class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
@@ -85,3 +88,41 @@ class BfrbLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[tuple[th.Tensor,
         self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
     ) -> AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]:
         return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn)
+
+
+# Without grids
+
+
+class BfrbFeaturesOnlyLiquidRecurrent(LiquidRecurrent):
+    def __init__(
+        self,
+        neuron_number: int,
+        unfolding_steps: int,
+        activation_function: Callable[[th.Tensor], th.Tensor],
+    ) -> None:
+        super().__init__(
+            neuron_number, self.nb_features, unfolding_steps, activation_function, self.output_size
+        )
+
+        self.__cls_token = nn.Parameter(th.randn(1, 1, self.nb_features))
+
+    def _process_input(self, i: th.Tensor) -> th.Tensor:
+        return th.cat([super()._process_input(i), self.__cls_token.repeat(i.size(0), 1, 1)], dim=1)
+
+    def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
+        return outputs[-1]
+
+    @property
+    def nb_features(self) -> int:
+        return 12
+
+    @property
+    def output_size(self) -> int:
+        return 18
+
+
+class BfrbFeaturesOnlyLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[th.Tensor]):
+    def get_recurrent(
+        self, neuron_number: int, unfolding_steps: int, act_fn: Callable[[th.Tensor], th.Tensor]
+    ) -> AbstractLiquidRecurrent[th.Tensor]:
+        return BfrbFeaturesOnlyLiquidRecurrent(neuron_number, unfolding_steps, act_fn)

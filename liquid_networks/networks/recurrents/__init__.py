@@ -1,4 +1,4 @@
-from .bfrb import BfrbLiquidRecurrentFactory
+from .bfrb import BfrbFeaturesOnlyLiquidRecurrentFactory, BfrbLiquidRecurrentFactory
 from .brain_activity import BrainActivityLiquidRecurrentFactory
 from .simple import LiquidRecurrentFactory
 from .variants import (
@@ -11,6 +11,7 @@ from .variants import (
 
 __all__ = [
     "BfrbLiquidRecurrentFactory",
+    "BfrbFeaturesOnlyLiquidRecurrentFactory",
     "BrainActivityLiquidRecurrentFactory",
     "LiquidRecurrentFactory",
     "LastLiquidRecurrentFactory",
