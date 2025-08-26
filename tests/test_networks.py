@@ -137,7 +137,7 @@ def test_recurrent_bfrb(
     unfolding_steps: int,
     time_steps: int,
 ) -> None:
-    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh, 1.0)
+    r = BfrbLiquidRecurrent(neuron_number, unfolding_steps, th.tanh, 1.0, 0.1)
 
     input_grids = th.randn(batch_size, time_steps, r.nb_grids, *r.grid_size)
     input_features = th.randn(batch_size, time_steps, r.nb_features)

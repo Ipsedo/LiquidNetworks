@@ -16,6 +16,7 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
         delta_t: float,
+        dropout: float,
     ) -> None:
         channels = [
             (self.nb_grids, 16),
@@ -40,7 +41,10 @@ class BfrbLiquidRecurrent(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
             ]
         )
 
-        self.__to_output = nn.Linear(neuron_number, self.output_size)
+        self.__to_output = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(neuron_number, self.output_size),
+        )
 
         self.__cls_token = nn.Parameter(th.zeros(1, 1, ltc_input_size))
 
@@ -93,7 +97,9 @@ class BfrbLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[tuple[th.Tensor,
         act_fn: Callable[[th.Tensor], th.Tensor],
         delta_t: float,
     ) -> AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]:
-        return BfrbLiquidRecurrent(neuron_number, unfolding_steps, act_fn, delta_t)
+        return BfrbLiquidRecurrent(
+            neuron_number, unfolding_steps, act_fn, delta_t, self._get_config("dropout", float)
+        )
 
 
 # Without grids
