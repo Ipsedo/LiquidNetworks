@@ -21,9 +21,13 @@ def eval_model_on_dataset[T](
     loss_fn: LossFunctionType,
     dataloader_workers: int,
     callback_batch_iter: Callable[[int, int], None] | None = None,
+    prediction_output_folder: str | None = None,
 ) -> float:
+    # pylint: disable=too-many-locals
     with th.no_grad():
         ltc.eval()
+
+        pred_register = valid_dataset.get_prediction_register()
 
         valid_dataloader = DataLoader(
             valid_dataset,
@@ -39,14 +43,21 @@ def eval_model_on_dataset[T](
             f_v = valid_dataset.to_device(f_v, device)
             y_v = y_v.to(device=device)
 
-            valid_loss += loss_fn(ltc(f_v), y_v, "sum").item()
+            pred = ltc(f_v)
+            valid_loss += loss_fn(pred, y_v, "sum").item()
 
             if callback_batch_iter is not None:
                 callback_batch_iter(i, len(valid_dataset))
 
+            if prediction_output_folder is not None:
+                pred_register.register_batch(i * batch_size, pred)
+
             nb_valid_examples += y_v.size(0)
 
         ltc.train()
+
+        if prediction_output_folder is not None:
+            pred_register.to_file(prediction_output_folder)
 
         return valid_loss / nb_valid_examples
 
@@ -86,7 +97,14 @@ def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
             tqdm_bar.update(eval_options.batch_size)
 
         eval_loss = eval_model_on_dataset(
-            ltc, dataset, eval_options.batch_size, device, loss_fn, eval_options.workers, _callback
+            ltc,
+            dataset,
+            eval_options.batch_size,
+            device,
+            loss_fn,
+            eval_options.workers,
+            _callback,
+            eval_options.output_folder,
         )
 
         tqdm_bar.write(f"Eval loss = {eval_loss}")

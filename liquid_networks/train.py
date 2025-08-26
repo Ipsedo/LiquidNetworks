@@ -88,7 +88,6 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
-                th.nn.utils.clip_grad_norm_(ltc.parameters(), max_norm=train_options.grad_norm_clip)
                 optim.step()
 
                 loss_metric.add_result(loss.item())

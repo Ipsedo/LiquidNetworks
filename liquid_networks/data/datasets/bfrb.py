@@ -1,14 +1,18 @@
+import json
 import re
 from os import listdir
 from os.path import join
 from typing import Any, Callable
 
+import pandas as pd
 import torch as th
+from torch import Tensor
 from torch.nn import functional as th_f
 
 from liquid_networks import networks
 
 from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
+from ..prediction_register import AbstractPredictionRegister, NoPredictionRegister
 
 # With Grids
 
@@ -17,7 +21,7 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     def __init__(self, data_path: str, normalize_grid: bool, normalize_features: bool) -> None:
         super().__init__(data_path)
 
-        regex_target = re.compile(r"^(.+)_target\.pth$")
+        regex_target = re.compile(r"^(.+)_features\.pth$")
 
         all_files = listdir(self._data_path)
         sequence_id = []
@@ -88,6 +92,9 @@ class BfrbDataset(AbstractDataset[tuple[th.Tensor, th.Tensor]]):
     ) -> tuple[th.Tensor, th.Tensor]:
         return data[0].to(device), data[1].to(device)
 
+    def get_prediction_register(self) -> AbstractPredictionRegister:
+        return NoPredictionRegister()
+
 
 class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):
     def get_dataset(self, data_path: str) -> AbstractDataset[tuple[th.Tensor, th.Tensor]]:
@@ -101,11 +108,28 @@ class BfrbDatasetFactory(AbstractDatasetFactory[tuple[th.Tensor, th.Tensor]]):
 # Without grids
 
 
+class BfrbFeauresOnlyPredictionRegister(AbstractPredictionRegister):
+    def __init__(self, get_data_id_fn: Callable[[int], str], idx_to_class: dict[int, str]) -> None:
+        super().__init__(get_data_id_fn)
+
+        self.__idx_to_class = idx_to_class
+
+        self.__data: list[tuple[str, str]] = []
+
+    def _register_impl(self, data_id: str, prediction: Tensor) -> None:
+        self.__data.append((data_id, self.__idx_to_class[int(th.argmax(prediction).item())]))
+
+    def to_file(self, output_folder: str) -> None:
+        pd.DataFrame(self.__data, columns=["sequence_id", "gesture"]).to_csv(
+            join(output_folder, "sample_submission.csv"), sep=",", index=False
+        )
+
+
 class BfrbFeaturesOnlyDataset(AbstractDataset[th.Tensor]):
     def __init__(self, data_path: str, normalize_features: bool) -> None:
         super().__init__(data_path)
 
-        regex_target = re.compile(r"^(.+)_target\.pth$")
+        regex_target = re.compile(r"^(.+)_features\.pth$")
 
         all_files = listdir(self._data_path)
         sequence_id = []
@@ -116,6 +140,11 @@ class BfrbFeaturesOnlyDataset(AbstractDataset[th.Tensor]):
 
         self.__idx_to_sequence_id = dict(enumerate(sequence_id))
         self.__normalize_features = normalize_features
+
+        with open(join(self._data_path, "class_to_idx.json"), "r", encoding="utf-8") as json_file:
+            self.__idx_to_class = {
+                class_idx: class_name for class_name, class_idx in json.load(json_file).items()
+            }
 
     def __len__(self) -> int:
         return len(self.__idx_to_sequence_id)
@@ -159,6 +188,12 @@ class BfrbFeaturesOnlyDataset(AbstractDataset[th.Tensor]):
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
+
+    def get_prediction_register(self) -> AbstractPredictionRegister:
+        return BfrbFeauresOnlyPredictionRegister(
+            lambda idx: self.__idx_to_sequence_id[idx],
+            self.__idx_to_class,
+        )
 
 
 class BfrbFeaturesOnlyDatasetFactory(AbstractDatasetFactory[th.Tensor]):

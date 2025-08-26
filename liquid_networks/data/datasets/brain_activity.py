@@ -8,6 +8,7 @@ from tqdm import tqdm
 from liquid_networks import networks
 
 from ..abstract_dataset import AbstractDataset, AbstractDatasetFactory
+from ..prediction_register import AbstractPredictionRegister, NoPredictionRegister
 
 
 class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
@@ -51,6 +52,9 @@ class HarmfulBrainActivityDataset(AbstractDataset[th.Tensor]):
 
     def to_device(self, data: th.Tensor, device: th.device) -> th.Tensor:
         return data.to(device)
+
+    def get_prediction_register(self) -> AbstractPredictionRegister:
+        return NoPredictionRegister()
 
 
 class HarmfulBrainActivityDatasetFactory(AbstractDatasetFactory[th.Tensor]):

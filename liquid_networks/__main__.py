@@ -55,7 +55,6 @@ def main() -> None:
     train_parser.add_argument("--epoch", type=int, default=200)
     train_parser.add_argument("--batch-size", type=int, default=128)
     train_parser.add_argument("--learning-rate", type=float, default=1e-3)
-    train_parser.add_argument("--grad-norm-clip", type=float, default=1.0)
     train_parser.add_argument("--metric-window-size", type=int, default=64)
     train_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
     train_parser.add_argument(
@@ -100,7 +99,6 @@ def main() -> None:
             epoch=args.epoch,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
-            grad_norm_clip=args.grad_norm_clip,
             output_folder=args.output_folder,
             run_name=args.run_name,
             metric_window_size=args.metric_window_size,
