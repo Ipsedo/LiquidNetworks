@@ -5,7 +5,6 @@ from torch import nn
 
 from ..abstract_recurent import AbstractLiquidRecurrent, AbstractLiquidRecurrentFactory
 from ..function import ActFnModule
-from .simple import LiquidRecurrent
 
 # With grids
 
@@ -100,13 +99,14 @@ class BfrbLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[tuple[th.Tensor,
 # Without grids
 
 
-class BfrbFeaturesOnlyLiquidRecurrent(LiquidRecurrent):
+class BfrbFeaturesOnlyLiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
     def __init__(
         self,
         neuron_number: int,
         unfolding_steps: int,
         activation_function: Callable[[th.Tensor], th.Tensor],
         delta_t: float,
+        dropout: float,
     ) -> None:
         super().__init__(
             neuron_number,
@@ -114,13 +114,21 @@ class BfrbFeaturesOnlyLiquidRecurrent(LiquidRecurrent):
             unfolding_steps,
             activation_function,
             delta_t,
-            self.output_size,
+        )
+
+        self.__to_output = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(neuron_number, self.output_size),
         )
 
         self.__cls_token = nn.Parameter(th.randn(1, 1, self.nb_features))
 
+    def _output_processing(self, out: th.Tensor) -> th.Tensor:
+        logits: th.Tensor = self.__to_output(out)
+        return logits
+
     def _process_input(self, i: th.Tensor) -> th.Tensor:
-        return th.cat([super()._process_input(i), self.__cls_token.repeat(i.size(0), 1, 1)], dim=1)
+        return th.cat([i, self.__cls_token.repeat(i.size(0), 1, 1)], dim=1)
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
         return outputs[-1]
@@ -142,4 +150,6 @@ class BfrbFeaturesOnlyLiquidRecurrentFactory(AbstractLiquidRecurrentFactory[th.T
         act_fn: Callable[[th.Tensor], th.Tensor],
         delta_t: float,
     ) -> AbstractLiquidRecurrent[th.Tensor]:
-        return BfrbFeaturesOnlyLiquidRecurrent(neuron_number, unfolding_steps, act_fn, delta_t)
+        return BfrbFeaturesOnlyLiquidRecurrent(
+            neuron_number, unfolding_steps, act_fn, delta_t, self._get_config("dropout", float)
+        )

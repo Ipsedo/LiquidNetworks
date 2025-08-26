@@ -22,11 +22,11 @@ class ModelOptions(BaseModel):
     activation_function: ActivationFunction
     delta_t: float
     task_type: TaskType
-    specific_parameters: dict[str, str]
+    model_parameters: dict[str, str]
     cuda: bool
 
     def get_model(self) -> AbstractLiquidRecurrent:
-        return get_model_constructor(self.task_type)(self.specific_parameters).get_recurrent(
+        return get_model_constructor(self.task_type)(self.model_parameters).get_recurrent(
             self.neuron_number,
             self.unfolding_steps,
             get_activation_fn(self.activation_function),

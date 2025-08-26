@@ -13,7 +13,7 @@ from .networks.losses import LossFunctionType
 from .options import EvalOptions, ModelOptions
 
 
-def eval_model_on_dataset[T](
+def model_predict_on_dataset[T](
     ltc: AbstractLiquidRecurrent[T],
     valid_dataset: AbstractDataset[T],
     batch_size: int,
@@ -62,7 +62,7 @@ def eval_model_on_dataset[T](
         return valid_loss / nb_valid_examples
 
 
-def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
+def predict_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
     if not exists(eval_options.output_folder):
         makedirs(eval_options.output_folder)
     elif not isdir(eval_options.output_folder):
@@ -96,7 +96,7 @@ def eval_main(model_options: ModelOptions, eval_options: EvalOptions) -> None:
         def _callback(_: int, __: int) -> None:
             tqdm_bar.update(eval_options.batch_size)
 
-        eval_loss = eval_model_on_dataset(
+        eval_loss = model_predict_on_dataset(
             ltc,
             dataset,
             eval_options.batch_size,

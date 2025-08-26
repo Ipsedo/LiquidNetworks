@@ -8,9 +8,9 @@ import torch as th
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .eval import eval_model_on_dataset
 from .metrics import Metric
 from .options import ModelOptions, TrainOptions
+from .predict import model_predict_on_dataset
 from .saver import ModelSaver
 
 
@@ -113,7 +113,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                 model_saver.tick_save()
 
                 if valid_dataset is not None and tqdm_bar.n % train_options.eval_every == 0:
-                    valid_loss = eval_model_on_dataset(
+                    valid_loss = model_predict_on_dataset(
                         ltc,
                         valid_dataset,
                         train_options.batch_size,

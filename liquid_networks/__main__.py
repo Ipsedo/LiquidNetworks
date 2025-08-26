@@ -2,9 +2,9 @@ import argparse
 import re
 
 from .data import DatasetNames
-from .eval import eval_main
 from .networks import ActivationFunction, TaskType
 from .options import EvalOptions, ModelOptions, TrainOptions
+from .predict import predict_main
 from .train import train_main
 
 
@@ -37,8 +37,8 @@ def main() -> None:
         "--activation-function", type=str, required=True, choices=list(ActivationFunction)
     )
     parser.add_argument(
-        "-sp",
-        "--specific-parameters",
+        "-mp",
+        "--model-parameters",
         type=_parse_key_value_parameters,
         action="append",
         default=[],
@@ -67,18 +67,18 @@ def main() -> None:
     train_parser.add_argument("--dataloader-workers", type=int, default=4)
 
     # eval parser
-    eval_parser = sub_parsers.add_parser("eval")
+    predict_parser = sub_parsers.add_parser("predict")
 
-    eval_parser.add_argument("run_name", type=str)
-    eval_parser.add_argument("output_folder", type=str)
-    eval_parser.add_argument("--model-path", type=str, required=True)
-    eval_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
-    eval_parser.add_argument(
+    predict_parser.add_argument("run_name", type=str)
+    predict_parser.add_argument("output_folder", type=str)
+    predict_parser.add_argument("--model-path", type=str, required=True)
+    predict_parser.add_argument("--dataset", type=str, required=True, choices=list(DatasetNames))
+    predict_parser.add_argument(
         "-dp", "--dataset-parameters", type=_parse_key_value_parameters, action="append", default=[]
     )
-    eval_parser.add_argument("--dataset-path", type=str, required=True)
-    eval_parser.add_argument("--batch-size", type=int, default=256)
-    eval_parser.add_argument("--dataloader-workers", type=int, default=4)
+    predict_parser.add_argument("--dataset-path", type=str, required=True)
+    predict_parser.add_argument("--batch-size", type=int, default=256)
+    predict_parser.add_argument("--dataloader-workers", type=int, default=4)
 
     # get args
     args = parser.parse_args()
@@ -89,7 +89,7 @@ def main() -> None:
         delta_t=args.delta_t,
         activation_function=args.activation_function,
         task_type=args.task_type,
-        specific_parameters=dict(args.specific_parameters),
+        model_parameters=dict(args.model_parameters),
         cuda=args.cuda,
     )
 
@@ -113,7 +113,7 @@ def main() -> None:
 
         train_main(model_options, train_options)
 
-    elif args.mode == "eval":
+    elif args.mode == "predict":
         eval_options = EvalOptions(
             model_path=args.model_path,
             output_folder=args.output_folder,
@@ -125,7 +125,7 @@ def main() -> None:
             workers=args.dataloader_workers,
         )
 
-        eval_main(model_options, eval_options)
+        predict_main(model_options, eval_options)
 
     else:
         parser.error(f"Unrecognized mode: {args.mode}")
