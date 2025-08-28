@@ -127,17 +127,21 @@ class BfrbFeaturesOnlyLiquidRecurrent(AbstractLiquidRecurrent[th.Tensor]):
             nn.Linear(neuron_number, self.output_size),
         )
 
-        self.__cls_token = nn.Parameter(th.randn(1, 1, self.nb_features))
+        self.__attention_pooling = nn.Sequential(nn.Linear(neuron_number, 1), nn.Softmax(dim=1))
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
-        logits: th.Tensor = self.__to_output(out)
-        return logits
+        return out
 
     def _process_input(self, i: th.Tensor) -> th.Tensor:
-        return th.cat([i, self.__cls_token.repeat(i.size(0), 1, 1)], dim=1)
+        return i
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        return outputs[-1]
+        stacked_output = th.stack(outputs, dim=1)
+
+        pooled_output = th.sum(stacked_output * self.__attention_pooling(stacked_output), dim=1)
+
+        logits: th.Tensor = self.__to_output(pooled_output)
+        return logits
 
     @property
     def nb_features(self) -> int:

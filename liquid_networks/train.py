@@ -48,7 +48,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
         max_steps = (train_options.epoch * len(train_dataset)) // train_options.batch_size
 
         ltc = model_options.get_model()
-        optim = th.optim.SGD(ltc.parameters(), lr=train_options.learning_rate)
+        optim = th.optim.Adam(ltc.parameters(), lr=train_options.learning_rate)
 
         loss_fn = model_options.get_loss_function()
 

@@ -23,11 +23,24 @@ def cross_entropy_time_series(
     outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType
 ) -> th.Tensor:
     assert len(outputs.size()) == 3
-    return _reduce(th_f.cross_entropy(outputs, targets, reduction="none").mean(dim=1), reduction)
+    assert len(targets.size()) == 2
+
+    b, t = targets.size()
+
+    return _reduce(
+        th.unflatten(
+            th_f.cross_entropy(outputs.flatten(0, 1), targets.flatten(0, 1), reduction="none"),
+            0,
+            (b, t),
+        ).sum(dim=1),
+        reduction,
+    )
 
 
 def cross_entropy(outputs: th.Tensor, targets: th.Tensor, reduction: ReductionType) -> th.Tensor:
     assert len(outputs.size()) == 2
+    assert len(targets.size()) == 1
+
     return _reduce(th_f.cross_entropy(outputs, targets, reduction="none"), reduction)
 
 

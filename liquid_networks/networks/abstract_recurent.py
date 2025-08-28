@@ -29,12 +29,10 @@ class AbstractLiquidRecurrent[T](ABC, nn.Module):
         self.__neuron_number = neuron_number
 
     def _get_first_x(self, batch_size: int) -> th.Tensor:
-        return self.__cell.activation_function(
-            th.zeros(
-                batch_size,
-                self.__neuron_number,
-                device=next(self.parameters()).device,
-            ),
+        return 1e-1 * th.randn(
+            batch_size,
+            self.__neuron_number,
+            device=next(self.parameters()).device,
         )
 
     @property
