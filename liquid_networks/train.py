@@ -48,10 +48,8 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
         max_steps = (train_options.epoch * len(train_dataset)) // train_options.batch_size
 
         ltc = model_options.get_model()
-        optim = th.optim.Adam(ltc.parameters(), lr=train_options.learning_rate)
-        scheduler = th.optim.lr_scheduler.CosineAnnealingLR(
-            optim, max_steps, eta_min=train_options.min_learning_rate
-        )
+        optim = th.optim.SGD(ltc.parameters(), lr=train_options.learning_rate)
+
         loss_fn = model_options.get_loss_function()
 
         ltc.to(device=device)
@@ -94,7 +92,6 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
                 optim.step()
-                scheduler.step()
 
                 loss_metric.add_result(loss.item())
                 grad_norm = ltc.grad_norm()
@@ -113,8 +110,7 @@ def train_main(model_options: ModelOptions, train_options: TrainOptions) -> None
                     f"loss = {loss_metric.get_last_metric():.4f}, "
                     f"loss_smoothed = {loss_metric.get_smoothed_metric():.4f}, "
                     f"valid_loss = {valid_metric.get_last_metric():.4f}, "
-                    f"grad_norm = {grad_norm:.4f}, "
-                    f"lr = {scheduler.get_last_lr()[0]:.6f}"
+                    f"grad_norm = {grad_norm:.4f}"
                 )
 
                 model_saver.tick_save()
