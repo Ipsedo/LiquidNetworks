@@ -49,7 +49,7 @@ class LiquidCell(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.__a = nn.Parameter(th.zeros(1, neuron_number))
+        self.__a = nn.Parameter(th.ones(1, neuron_number))
         self.__log_tau = nn.Parameter(th.zeros(1, neuron_number))
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
