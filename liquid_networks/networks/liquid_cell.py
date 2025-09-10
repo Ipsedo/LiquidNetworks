@@ -88,3 +88,11 @@ class LiquidCell(nn.Module):
     @property
     def activation_function(self) -> Callable[[th.Tensor], th.Tensor]:
         return self.__f.activation_function
+
+    @property
+    def a(self) -> th.Tensor:
+        return self.__a
+
+    @property
+    def log_tau(self) -> th.Tensor:
+        return self.__log_tau
