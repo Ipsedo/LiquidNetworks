@@ -24,8 +24,8 @@ class CellModel(nn.Module):
 
         self.__activation_function = activation_function
 
-        __init_weights(self.__weights.weight)
-        __init_weights(self.__recurrent_weights.weight)
+        __init_weights(self.weight)
+        __init_weights(self.recurrent_weight)
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
         # x_t: (batch, input_size)
@@ -36,6 +36,18 @@ class CellModel(nn.Module):
     @property
     def activation_function(self) -> Callable[[th.Tensor], th.Tensor]:
         return self.__activation_function
+
+    @property
+    def weight(self) -> th.Tensor:
+        return self.__weights.weight
+
+    @property
+    def recurrent_weight(self) -> th.Tensor:
+        return self.__recurrent_weights.weight
+
+    @property
+    def bias(self) -> th.Tensor:
+        return self.__biases
 
 
 class LiquidCell(nn.Module):

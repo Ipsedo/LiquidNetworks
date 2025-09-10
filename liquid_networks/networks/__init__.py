@@ -46,6 +46,7 @@ class ActivationFunction(StrEnum):
     RELU = "relu"
     GELU = "gelu"
     LEAKY_RELU = "leaky_relu"
+    HARD_TANH = "hard_tanh"
 
 
 _MODEL_DICT: Final[dict[TaskType, ModelFactoryConstructor]] = {
@@ -77,6 +78,7 @@ _ACT_FN_DICT: Final[dict[ActivationFunction, Callable[[th.Tensor], th.Tensor]]] 
     ActivationFunction.TANH: th_f.tanh,
     ActivationFunction.LEAKY_RELU: th_f.leaky_relu,
     ActivationFunction.GELU: th_f.gelu,
+    ActivationFunction.HARD_TANH: th_f.hardtanh,
 }
 
 
