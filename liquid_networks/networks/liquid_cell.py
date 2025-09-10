@@ -2,6 +2,7 @@ from typing import Callable
 
 import torch as th
 from torch import nn
+from torch.nn import functional as th_f
 
 
 class CellModel(nn.Module):
@@ -62,7 +63,7 @@ class LiquidCell(nn.Module):
         super().__init__()
 
         self.__a = nn.Parameter(th.ones(1, neuron_number))
-        self.__log_tau = nn.Parameter(th.zeros(1, neuron_number))
+        self.__raw_tau = nn.Parameter(th.zeros(1, neuron_number))
 
         self.__f = CellModel(neuron_number, input_size, activation_function)
 
@@ -71,7 +72,8 @@ class LiquidCell(nn.Module):
 
     @property
     def __tau(self) -> th.Tensor:
-        return th.exp(self.__log_tau)
+        # pylint: disable=not-callable
+        return th_f.softplus(self.__raw_tau) + 1e-3
 
     def forward(self, x_t: th.Tensor, input_t: th.Tensor) -> th.Tensor:
         x_t_next = x_t
@@ -94,5 +96,5 @@ class LiquidCell(nn.Module):
         return self.__a
 
     @property
-    def log_tau(self) -> th.Tensor:
-        return self.__log_tau
+    def raw_tau(self) -> th.Tensor:
+        return self.__raw_tau
