@@ -5,21 +5,16 @@ My python template for liquid_networks.
 ## Installation
 
 ```bash
-$ cd /path/to/LiquidNetworks
-$ # install venv
-$ python -m venv venv
-$ source ./venv/bin/activate
-$ # install requirements
-$ pip install -r requirements.txt
-$ # install pre-commit (needs "git init" command)
-$ pre-commit install
+cd /path/to/LiquidNetworks
+# install uv venv
+uv sync
 ```
 
 ## Usage
 
 ```shell
-$ # to print CLI help
-$ python -m liquid_networks
+# to print CLI help
+
 ```
 
 ## Datasets
