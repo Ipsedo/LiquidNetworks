@@ -14,7 +14,7 @@ uv sync
 
 ```shell
 # to print CLI help
-
+uv run python -m liquid_networks --help
 ```
 
 ## Datasets
