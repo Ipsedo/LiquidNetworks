@@ -1,7 +1,7 @@
 [project]
 name = "liquid-networks"
 version = "1.0.0"
-description = "Add your description here"
+description = "Liquid time-constant networks implementation with PyTorch."
 readme = "README.md"
 authors = [
     { name = "Samuel Berrien" }
